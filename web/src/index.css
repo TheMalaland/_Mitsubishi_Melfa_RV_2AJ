@@ -3,6 +3,10 @@
   font: 15px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
 }
 
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -12,9 +16,4 @@ body,
 #root {
   height: 100%;
   margin: 0;
-}
-
-body {
-  background: #0c0d12;
-  color: #e6e8ef;
 }
