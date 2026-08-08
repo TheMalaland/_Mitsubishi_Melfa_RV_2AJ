@@ -1,15 +1,31 @@
 import { useMemo } from 'react';
+import { useLoader } from '@react-three/fiber';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import * as THREE from 'three';
 import { forwardKinematics } from '../kinematics/forwardKinematics';
 import type { JointAngles } from '../kinematics/constants';
-import type { Vec3 } from '../kinematics/forwardKinematics';
+import type { Mat4, Vec3 } from '../kinematics/forwardKinematics';
+import { MESH_RIG } from './meshRig';
 
-// mm -> scene units (keeps the viewport in small, camera-friendly numbers)
+// mm -> scene units. The scene keeps the robot's native Z-up convention
+// (camera.up and the floor grid are set up to match in Scene3D), so this is
+// a plain scale with no axis permutation.
 export const MM_TO_UNIT = 0.01;
+// The STL files (public/models/*.stl) are exported in meters; convert to
+// scene units on top of the per-part mm-based rig scale.
+const STL_METERS_TO_SCENE = 1000 * MM_TO_UNIT;
 
 export function toScene(v: Vec3): [number, number, number] {
-  // Robot Z (up) -> three.js Y (up); robot X/Y stay on the ground plane.
-  return [v.x * MM_TO_UNIT, v.z * MM_TO_UNIT, v.y * MM_TO_UNIT];
+  return [v.x * MM_TO_UNIT, v.y * MM_TO_UNIT, v.z * MM_TO_UNIT];
+}
+
+function quatFromMat4(m: Mat4): THREE.Quaternion {
+  const mat = new THREE.Matrix4().set(...(m as unknown as Parameters<THREE.Matrix4['set']>));
+  const pos = new THREE.Vector3();
+  const quat = new THREE.Quaternion();
+  const scl = new THREE.Vector3();
+  mat.decompose(pos, quat, scl);
+  return quat;
 }
 
 function Segment({ from, to, radius, color }: { from: Vec3; to: Vec3; radius: number; color: string }) {
@@ -26,33 +42,24 @@ function Segment({ from, to, radius, color }: { from: Vec3; to: Vec3; radius: nu
   if (length < 1e-6) return null;
 
   return (
-    <mesh position={position} quaternion={quaternion} castShadow receiveShadow>
+    <mesh position={position} quaternion={quaternion}>
       <cylinderGeometry args={[radius, radius, length, 16]} />
       <meshStandardMaterial color={color} metalness={0.3} roughness={0.5} />
     </mesh>
   );
 }
 
-function JointBall({ at, radius = 0.09, color = '#e8e8e8' }: { at: Vec3; radius?: number; color?: string }) {
-  return (
-    <mesh position={toScene(at)} castShadow>
-      <sphereGeometry args={[radius, 20, 20]} />
-      <meshStandardMaterial color={color} metalness={0.4} roughness={0.4} />
-    </mesh>
-  );
-}
-
-function ToolGizmo({ matrix }: { matrix: number[] }) {
+function ToolGizmo({ matrix }: { matrix: Mat4 }) {
   const m = useMemo(() => new THREE.Matrix4().set(...(matrix as unknown as Parameters<THREE.Matrix4['set']>)), [matrix]);
   const origin = new THREE.Vector3().setFromMatrixPosition(m);
   const axisX = new THREE.Vector3(1, 0, 0).transformDirection(m);
   const axisY = new THREE.Vector3(0, 1, 0).transformDirection(m);
   const axisZ = new THREE.Vector3(0, 0, 1).transformDirection(m);
-  const scale = 1.4;
+  const scale = 60; // mm
   const tip = (axis: THREE.Vector3): Vec3 => ({
-    x: origin.x + axis.x * scale * (1 / MM_TO_UNIT),
-    y: origin.y + axis.y * scale * (1 / MM_TO_UNIT),
-    z: origin.z + axis.z * scale * (1 / MM_TO_UNIT),
+    x: origin.x + axis.x * scale,
+    y: origin.y + axis.y * scale,
+    z: origin.z + axis.z * scale,
   });
   const originMm: Vec3 = { x: origin.x, y: origin.y, z: origin.z };
   return (
@@ -64,6 +71,58 @@ function ToolGizmo({ matrix }: { matrix: number[] }) {
   );
 }
 
+// Standalone single-file builds (e.g. the published artifact) can supply
+// embedded data: URIs here instead of separate network requests.
+declare global {
+  interface Window {
+    __MODEL_ASSETS__?: Record<string, string>;
+  }
+}
+const MODEL_URLS = MESH_RIG.map((p) => window.__MODEL_ASSETS__?.[p.file] ?? `/models/${p.file}`);
+
+function RigPart({
+  index,
+  geometry,
+  fk,
+  j1Rad,
+}: {
+  index: number;
+  geometry: THREE.BufferGeometry;
+  fk: ReturnType<typeof forwardKinematics>;
+  j1Rad: number;
+}) {
+  const entry = MESH_RIG[index];
+
+  const { position, quaternion, scale } = useMemo(() => {
+    let pos: Vec3;
+    let quat: THREE.Quaternion;
+    if (entry.baseSpinOnly) {
+      pos = { x: 0, y: 0, z: 0 };
+      quat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), j1Rad);
+    } else {
+      pos = fk.origins[entry.positionFrame];
+      quat = quatFromMat4(fk.matrices[entry.rotationFrame]);
+    }
+    if (entry.mountEuler) {
+      quat = quat.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(...entry.mountEuler)));
+    }
+    const s = STL_METERS_TO_SCENE;
+    return {
+      position: new THREE.Vector3(...toScene(pos)),
+      quaternion: quat,
+      scale: new THREE.Vector3(s, s, s * (entry.scaleZ ?? 1)),
+    };
+  }, [entry, fk, j1Rad]);
+
+  return (
+    <group position={position} quaternion={quaternion}>
+      <mesh geometry={geometry} scale={scale} castShadow receiveShadow>
+        <meshStandardMaterial color={entry.color} metalness={0.25} roughness={0.55} />
+      </mesh>
+    </group>
+  );
+}
+
 export interface RobotArmProps {
   joints: JointAngles;
   showToolAxes?: boolean;
@@ -71,25 +130,14 @@ export interface RobotArmProps {
 
 export function RobotArm({ joints, showToolAxes = true }: RobotArmProps) {
   const fk = useMemo(() => forwardKinematics(joints), [joints]);
-  const [O0, O1, O2, O3, , O5] = fk.origins;
+  const geometries = useLoader(STLLoader, MODEL_URLS);
+  const j1Rad = (joints.j1 * Math.PI) / 180;
 
   return (
     <group>
-      {/* Base pedestal */}
-      <mesh position={toScene({ x: 0, y: 0, z: -10 })} receiveShadow>
-        <cylinderGeometry args={[0.5, 0.55, 0.2, 32]} />
-        <meshStandardMaterial color="#3a3f4b" metalness={0.5} roughness={0.4} />
-      </mesh>
-
-      <Segment from={O0} to={O1} radius={0.16} color="#5c6470" />
-      <Segment from={O1} to={O2} radius={0.13} color="#2f6fed" />
-      <Segment from={O2} to={O3} radius={0.11} color="#ed9a2f" />
-      <Segment from={O3} to={O5} radius={0.08} color="#2fed7a" />
-
-      <JointBall at={O1} />
-      <JointBall at={O2} />
-      <JointBall at={O3} />
-      <JointBall at={O5} radius={0.07} color="#ffcf5c" />
+      {MESH_RIG.map((entry, i) => (
+        <RigPart key={entry.file} index={i} geometry={geometries[i]} fk={fk} j1Rad={j1Rad} />
+      ))}
 
       {showToolAxes && <ToolGizmo matrix={fk.matrix} />}
     </group>

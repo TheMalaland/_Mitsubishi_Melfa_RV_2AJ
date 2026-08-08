@@ -1,6 +1,8 @@
 import { LINK, type JointAngles } from './constants';
 import { chain, dhTransform, translation, type Mat4 } from './mat4';
 
+export type { Mat4 };
+
 export interface Vec3 {
   x: number;
   y: number;
@@ -10,6 +12,8 @@ export interface Vec3 {
 export interface ForwardKinematicsResult {
   /** Joint origins O0 (base) through O5 (tool center point), in mm. */
   origins: [Vec3, Vec3, Vec3, Vec3, Vec3, Vec3];
+  /** Frame transforms F0 (identity, base) through F5 (tool), for mesh attachment. */
+  matrices: [Mat4, Mat4, Mat4, Mat4, Mat4, Mat4];
   /** Tool center point position, mm. */
   position: Vec3;
   /** Wrist pitch relative to horizontal, degrees (matches MATLAB `beta`). */
@@ -19,6 +23,8 @@ export interface ForwardKinematicsResult {
   /** Full end-effector homogeneous transform. */
   matrix: Mat4;
 }
+
+const IDENTITY: Mat4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 
 const deg2rad = (d: number) => (d * Math.PI) / 180;
 const rad2deg = (r: number) => (r * 180) / Math.PI;
@@ -57,6 +63,7 @@ export function forwardKinematics({ j1, j2, j3, j4, j5 }: JointAngles): ForwardK
 
   return {
     origins,
+    matrices: [IDENTITY, T01, T02, T03, T04, T05],
     position: origins[5],
     beta,
     alpha,

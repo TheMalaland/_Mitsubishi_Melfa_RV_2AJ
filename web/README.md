@@ -15,7 +15,9 @@ sin conexión al robot físico.
 - **Generador de trayectorias** — círculo, rectángulo y triángulo alrededor
   del punto de referencia, animados en tiempo real resolviendo IK punto por
   punto.
-- **Visualización 3D** interactiva (orbit/zoom/pan) del brazo completo.
+- **Visualización 3D** interactiva (orbit/zoom/pan) del brazo completo,
+  usando la malla real del robot (los STL de `robot_nou.SLDASM`, en
+  `public/models/`), no geometría genérica.
 
 ## Origen del código
 
@@ -44,6 +46,14 @@ npm run preview   # sirve el build de producción localmente
 
 ## Deploy
 
-`npm run build` genera un sitio 100% estático en `dist/` — se puede
-desplegar en Vercel, Netlify, GitHub Pages o cualquier hosting estático,
-sin backend.
+`npm run build` genera un sitio 100% estático en `dist/` (los `.stl` de
+`public/models/` se sirven como archivos separados) — se puede desplegar en
+Vercel, Netlify, GitHub Pages o cualquier hosting estático, sin backend.
+
+Para generar una versión de un solo archivo HTML (los `.stl` embebidos como
+`data:` URIs, útil para compartir sin hosting):
+
+```bash
+npm run build
+node build-artifact.mjs salida.html
+```
