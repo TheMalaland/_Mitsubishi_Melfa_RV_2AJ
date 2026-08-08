@@ -67,6 +67,8 @@ function App() {
   const [targetPoint, setTargetPoint] = useState<Vec3 | null>(null);
   const [theme, toggleTheme] = useTheme();
   const [demo, setDemo] = useState(false);
+  const [headerCollapsed, setHeaderCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useDemoMotion(demo, setJoints);
 
@@ -86,32 +88,57 @@ function App() {
 
   return (
     <div className="app">
-      <header className="app-header">
-        <div className="app-header-text">
-          <h1>Mitsubishi Melfa RV-2AJ · Simulador Web</h1>
-          <p>
-            Migración a la web del proyecto original de MATLAB/Simulink para el brazo robótico de 5 ejes Melfa RV-2AJ.
-          </p>
+      <header className={headerCollapsed ? 'app-header collapsed' : 'app-header'}>
+        {!headerCollapsed && (
+          <div className="app-header-text">
+            <h1>Mitsubishi Melfa RV-2AJ · Simulador Web</h1>
+            <p>
+              Migración a la web del proyecto original de MATLAB/Simulink para el brazo robótico de 5 ejes Melfa RV-2AJ.
+            </p>
+          </div>
+        )}
+        <div className="app-header-actions">
+          <button
+            type="button"
+            className="icon-toggle"
+            title={headerCollapsed ? 'Mostrar encabezado' : 'Minimizar encabezado'}
+            onClick={() => setHeaderCollapsed((c) => !c)}
+          >
+            {headerCollapsed ? '▾' : '▴'}
+          </button>
+          <button type="button" className="theme-toggle" onClick={toggleTheme}>
+            {theme === 'dark' ? '☀️' : '🌙'} <span>{theme === 'dark' ? 'Claro' : 'Oscuro'}</span>
+          </button>
         </div>
-        <button type="button" className="theme-toggle" onClick={toggleTheme}>
-          {theme === 'dark' ? '☀️' : '🌙'} <span>{theme === 'dark' ? 'Claro' : 'Oscuro'}</span>
-        </button>
       </header>
 
-      <div className="app-body">
-        <aside className="sidebar">
-          <nav className="tabs">
-            {TABS.map((t) => (
-              <button key={t.id} className={t.id === tab ? 'tab active' : 'tab'} onClick={() => handleTab(t.id)}>
-                {t.label}
-              </button>
-            ))}
-          </nav>
+      <div className={sidebarCollapsed ? 'app-body sidebar-collapsed' : 'app-body'}>
+        <aside className={sidebarCollapsed ? 'sidebar collapsed' : 'sidebar'}>
+          {sidebarCollapsed ? (
+            <button type="button" className="icon-toggle sidebar-expand" title="Mostrar menú" onClick={() => setSidebarCollapsed(false)}>
+              ▸
+            </button>
+          ) : (
+            <>
+              <div className="sidebar-top">
+                <nav className="tabs">
+                  {TABS.map((t) => (
+                    <button key={t.id} className={t.id === tab ? 'tab active' : 'tab'} onClick={() => handleTab(t.id)}>
+                      {t.label}
+                    </button>
+                  ))}
+                </nav>
+                <button type="button" className="icon-toggle" title="Minimizar menú" onClick={() => setSidebarCollapsed(true)}>
+                  ◂
+                </button>
+              </div>
 
-          {tab === 'fk' && <ForwardKinematicsPanel onJointsChange={handleJointsChange} />}
-          {tab === 'ik' && <InverseKinematicsPanel onJointsChange={handleJointsChange} onTargetChange={setTargetPoint} />}
-          {tab === 'trajectory' && (
-            <TrajectoryPanel onJointsChange={handleJointsChange} onPathChange={setPathPoints} onTargetChange={setTargetPoint} />
+              {tab === 'fk' && <ForwardKinematicsPanel onJointsChange={handleJointsChange} />}
+              {tab === 'ik' && <InverseKinematicsPanel onJointsChange={handleJointsChange} onTargetChange={setTargetPoint} />}
+              {tab === 'trajectory' && (
+                <TrajectoryPanel onJointsChange={handleJointsChange} onPathChange={setPathPoints} onTargetChange={setTargetPoint} />
+              )}
+            </>
           )}
         </aside>
 

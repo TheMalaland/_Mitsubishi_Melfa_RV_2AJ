@@ -48,6 +48,19 @@ function Segment({ from, to, radius, color }: { from: Vec3; to: Vec3; radius: nu
   );
 }
 
+// The CAD parts don't quite meet edge-to-edge at every axis (their true
+// mating surface is slightly inset from the bounding box this rig scales
+// against), which leaves a hairline gap at a couple of joints. A small
+// collar hides that seam and doubles as a plausible bearing housing.
+function JointCollar({ at, radius, color }: { at: Vec3; radius: number; color: string }) {
+  return (
+    <mesh position={toScene(at)}>
+      <sphereGeometry args={[radius, 20, 20]} />
+      <meshStandardMaterial color={color} metalness={0.35} roughness={0.5} />
+    </mesh>
+  );
+}
+
 function ToolGizmo({ matrix }: { matrix: Mat4 }) {
   const m = useMemo(() => new THREE.Matrix4().set(...(matrix as unknown as Parameters<THREE.Matrix4['set']>)), [matrix]);
   const origin = new THREE.Vector3().setFromMatrixPosition(m);
@@ -172,11 +185,17 @@ export function RobotArm({ joints, showToolAxes = true }: RobotArmProps) {
 
   if (!geometries) return null;
 
+  const [, O1, O2, O3] = fk.origins;
+
   return (
     <group>
       {MESH_RIG.map((entry, i) => (
         <RigPart key={entry.file} index={i} geometry={geometries[i]} fk={fk} j1Rad={j1Rad} />
       ))}
+
+      <JointCollar at={O1} radius={0.1} color="#3a3f4b" />
+      <JointCollar at={O2} radius={0.095} color="#3a3f4b" />
+      <JointCollar at={O3} radius={0.075} color="#3a3f4b" />
 
       {showToolAxes && <ToolGizmo matrix={fk.matrix} />}
     </group>

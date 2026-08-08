@@ -36,11 +36,17 @@ export interface MeshRigEntry {
 
 const MOUNT_Y90: [number, number, number] = [0, Math.PI / 2, 0];
 
-// Measured local Z spans (mm) from each STL's bounding box.
-const SPAN_1BRAT = 194;
-const SPAN_2BRAT = 360;
-const SPAN_3BRAT = 248;
-const SPAN_4BRAT = 103;
+// Distance (mm) from each part's local origin (its pivot, at local Z=0) to
+// its distal tip (local Z=max) — i.e. the "reach" that has to match the
+// corresponding DH link length. Not the same as the full bounding-box span:
+// 2brat/3brat/4brat all have material hanging *behind* the pivot too (local
+// Z<0, a boss/collar around the joint), which doesn't count toward the reach
+// and previously left the scaled part short of the next joint (a visible gap
+// at the wrist).
+const REACH_1BRAT = 194;
+const REACH_2BRAT = 298;
+const REACH_3BRAT = 201;
+const REACH_4BRAT = 46;
 
 // Off-white body with a blue accent shoulder, similar in spirit to the real
 // RV-2AJ's ivory-and-blue color scheme.
@@ -50,10 +56,10 @@ const JOINT = '#3a3f4b';
 
 export const MESH_RIG: MeshRigEntry[] = [
   { file: 'baza.stl', color: BODY, positionFrame: 0, rotationFrame: 0 },
-  { file: '1brat.stl', color: ACCENT, positionFrame: 0, rotationFrame: 0, baseSpinOnly: true, scaleZ: LINK.L1 / SPAN_1BRAT },
-  { file: '2brat.stl', color: BODY, positionFrame: 1, rotationFrame: 2, scaleZ: LINK.L2 / SPAN_2BRAT, mountEuler: MOUNT_Y90 },
-  { file: '3brat.stl', color: BODY, positionFrame: 2, rotationFrame: 3, scaleZ: LINK.L3 / SPAN_3BRAT, mountEuler: MOUNT_Y90 },
-  { file: '4brat.stl', color: JOINT, positionFrame: 3, rotationFrame: 4, scaleZ: LINK.L4 / SPAN_4BRAT },
+  { file: '1brat.stl', color: ACCENT, positionFrame: 0, rotationFrame: 0, baseSpinOnly: true, scaleZ: LINK.L1 / REACH_1BRAT },
+  { file: '2brat.stl', color: BODY, positionFrame: 1, rotationFrame: 2, scaleZ: LINK.L2 / REACH_2BRAT, mountEuler: MOUNT_Y90 },
+  { file: '3brat.stl', color: BODY, positionFrame: 2, rotationFrame: 3, scaleZ: LINK.L3 / REACH_3BRAT, mountEuler: MOUNT_Y90 },
+  { file: '4brat.stl', color: JOINT, positionFrame: 3, rotationFrame: 4, scaleZ: LINK.L4 / REACH_4BRAT },
   { file: 'flansa.stl', color: JOINT, positionFrame: 5, rotationFrame: 5 },
   { file: 'efector.stl', color: '#8f95a3', positionFrame: 5, rotationFrame: 5 },
 ];
