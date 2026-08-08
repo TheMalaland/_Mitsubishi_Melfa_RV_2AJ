@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Scene3D } from './components/Scene3D';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ForwardKinematicsPanel } from './components/ForwardKinematicsPanel';
 import { InverseKinematicsPanel } from './components/InverseKinematicsPanel';
 import { TrajectoryPanel } from './components/TrajectoryPanel';
@@ -54,7 +55,9 @@ function App() {
         </aside>
 
         <main className="viewer">
-          <Scene3D joints={joints} pathPoints={pathPoints} targetPoint={targetPoint} />
+          <ErrorBoundary>
+            <Scene3D joints={joints} pathPoints={pathPoints} targetPoint={targetPoint} />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

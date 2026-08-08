@@ -1,5 +1,4 @@
-import { useMemo } from 'react';
-import { useLoader } from '@react-three/fiber';
+import { useEffect, useMemo, useState } from 'react';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import * as THREE from 'three';
 import { forwardKinematics } from '../kinematics/forwardKinematics';
@@ -72,13 +71,51 @@ function ToolGizmo({ matrix }: { matrix: Mat4 }) {
 }
 
 // Standalone single-file builds (e.g. the published artifact) can supply
-// embedded data: URIs here instead of separate network requests.
+// embedded data: URIs here instead of separate network requests — parsed
+// directly from base64 below, never fetched, since sandboxed hosts can
+// block fetch()/XHR against data: URIs even though the URI itself is inert.
 declare global {
   interface Window {
     __MODEL_ASSETS__?: Record<string, string>;
   }
 }
-const MODEL_URLS = MESH_RIG.map((p) => window.__MODEL_ASSETS__?.[p.file] ?? `/models/${p.file}`);
+
+function decodeBase64DataUri(dataUri: string): ArrayBuffer {
+  const base64 = dataUri.slice(dataUri.indexOf(',') + 1);
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
+
+function useRigGeometries(): THREE.BufferGeometry[] | null {
+  const [geometries, setGeometries] = useState<THREE.BufferGeometry[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loader = new STLLoader();
+
+    Promise.all(
+      MESH_RIG.map(async (p) => {
+        const embedded = window.__MODEL_ASSETS__?.[p.file];
+        if (embedded) {
+          return loader.parse(decodeBase64DataUri(embedded));
+        }
+        const res = await fetch(`/models/${p.file}`);
+        const buffer = await res.arrayBuffer();
+        return loader.parse(buffer);
+      })
+    ).then((geoms) => {
+      if (!cancelled) setGeometries(geoms);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return geometries;
+}
 
 function RigPart({
   index,
@@ -130,8 +167,10 @@ export interface RobotArmProps {
 
 export function RobotArm({ joints, showToolAxes = true }: RobotArmProps) {
   const fk = useMemo(() => forwardKinematics(joints), [joints]);
-  const geometries = useLoader(STLLoader, MODEL_URLS);
+  const geometries = useRigGeometries();
   const j1Rad = (joints.j1 * Math.PI) / 180;
+
+  if (!geometries) return null;
 
   return (
     <group>
