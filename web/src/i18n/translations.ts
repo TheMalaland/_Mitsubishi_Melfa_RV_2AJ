@@ -78,6 +78,7 @@ const dict = {
     viewerDemoStop: 'Detener demo',
     viewerControlsCollapse: 'Minimizar controles',
     viewerControlsExpand: 'Mostrar controles',
+    viewerLoading: 'Cargando modelo del brazo…',
   },
   en: {
     appTitle: 'Mitsubishi Melfa RV-2AJ · Web Simulator',
@@ -145,6 +146,7 @@ const dict = {
     viewerDemoStop: 'Stop demo',
     viewerControlsCollapse: 'Collapse controls',
     viewerControlsExpand: 'Show controls',
+    viewerLoading: 'Loading arm model…',
   },
   zh: {
     appTitle: '三菱 Melfa RV-2AJ · 网页模拟器',
@@ -211,6 +213,7 @@ const dict = {
     viewerDemoStop: '停止演示',
     viewerControlsCollapse: '收起控件',
     viewerControlsExpand: '显示控件',
+    viewerLoading: '正在加载机械臂模型…',
   },
   ko: {
     appTitle: '미쓰비시 Melfa RV-2AJ · 웹 시뮬레이터',
@@ -278,6 +281,7 @@ const dict = {
     viewerDemoStop: '데모 중지',
     viewerControlsCollapse: '컨트롤 접기',
     viewerControlsExpand: '컨트롤 표시',
+    viewerLoading: '로봇 팔 모델 로딩 중…',
   },
   vi: {
     appTitle: 'Mitsubishi Melfa RV-2AJ · Trình mô phỏng Web',
@@ -345,6 +349,7 @@ const dict = {
     viewerDemoStop: 'Dừng demo',
     viewerControlsCollapse: 'Thu gọn điều khiển',
     viewerControlsExpand: 'Hiện điều khiển',
+    viewerLoading: 'Đang tải mô hình cánh tay…',
   },
 } as const;
 

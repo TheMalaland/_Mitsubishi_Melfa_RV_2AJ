@@ -12,6 +12,15 @@ const JOINT_KEYS: Record<keyof JointAngles, TranslationKey> = {
   j5: 'jointJ5',
 };
 
+const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+
+// J2 (shoulder) and J3 (elbow) are independently within range up near their
+// own maximums, but *together* they fold the forearm back into the shoulder
+// housing — the real machine's mechanical stops prevent that combination,
+// our per-axis limits alone don't. Capping their sum keeps the slider from
+// driving the mesh into that self-intersecting corner.
+const J2_J3_SUM_LIMIT = 210;
+
 export function ForwardKinematicsPanel({ onJointsChange }: { onJointsChange: (j: JointAngles) => void }) {
   const { t } = useLanguage();
   const [joints, setJoints] = useState<JointAngles>(HOME_JOINTS);
@@ -22,7 +31,18 @@ export function ForwardKinematicsPanel({ onJointsChange }: { onJointsChange: (j:
 
   const fk = forwardKinematics(joints);
 
-  const setJoint = (key: keyof JointAngles, value: number) => setJoints((j) => ({ ...j, [key]: value }));
+  const setJoint = (key: keyof JointAngles, value: number) =>
+    setJoints((j) => {
+      const next = { ...j, [key]: value };
+      if (key === 'j2') {
+        const j3Max = clamp(J2_J3_SUM_LIMIT - next.j2, JOINT_LIMITS.j3[0], JOINT_LIMITS.j3[1]);
+        if (next.j3 > j3Max) next.j3 = j3Max;
+      } else if (key === 'j3') {
+        const j2Max = clamp(J2_J3_SUM_LIMIT - next.j3, JOINT_LIMITS.j2[0], JOINT_LIMITS.j2[1]);
+        if (next.j2 > j2Max) next.j2 = j2Max;
+      }
+      return next;
+    });
 
   return (
     <div className="panel">
@@ -30,7 +50,13 @@ export function ForwardKinematicsPanel({ onJointsChange }: { onJointsChange: (j:
       <p className="panel-hint">{t('fkHint')}</p>
 
       {(Object.keys(JOINT_KEYS) as (keyof JointAngles)[]).map((key) => {
-        const [min, max] = JOINT_LIMITS[key];
+        const [min, naturalMax] = JOINT_LIMITS[key];
+        const max =
+          key === 'j2'
+            ? clamp(J2_J3_SUM_LIMIT - joints.j3, min, naturalMax)
+            : key === 'j3'
+              ? clamp(J2_J3_SUM_LIMIT - joints.j2, min, naturalMax)
+              : naturalMax;
         return (
           <div className="field" key={key}>
             <label>

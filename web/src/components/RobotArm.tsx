@@ -52,11 +52,15 @@ function Segment({ from, to, radius, color }: { from: Vec3; to: Vec3; radius: nu
 // mating surface is slightly inset from the bounding box this rig scales
 // against), which leaves a hairline gap at a couple of joints. A small
 // collar hides that seam and doubles as a plausible bearing housing.
-function JointCollar({ at, radius, color }: { at: Vec3; radius: number; color: string }) {
+function JointCollar({ at, radius, color, glossy = false }: { at: Vec3; radius: number; color: string; glossy?: boolean }) {
   return (
     <mesh position={toScene(at)}>
       <sphereGeometry args={[radius, 20, 20]} />
-      <meshStandardMaterial color={color} metalness={0.35} roughness={0.5} />
+      {glossy ? (
+        <meshPhysicalMaterial color={color} metalness={0.15} roughness={0.3} clearcoat={1} clearcoatRoughness={0.15} />
+      ) : (
+        <meshPhysicalMaterial color={color} metalness={0.3} roughness={0.45} clearcoat={0.6} clearcoatRoughness={0.3} />
+      )}
     </mesh>
   );
 }
@@ -202,7 +206,16 @@ function RigPart({
   return (
     <group position={position} quaternion={quaternion}>
       <mesh geometry={geometry} scale={scale} castShadow receiveShadow>
-        <meshStandardMaterial color={entry.color} metalness={0.25} roughness={0.55} />
+        {/* Clearcoat over a low-metalness base reads as painted/molded plastic
+            (the real RV-2AJ's glossy pearl-white finish) instead of the flat
+            matte look a plain standard material gives. */}
+        <meshPhysicalMaterial
+          color={entry.color}
+          metalness={0.08}
+          roughness={0.32}
+          clearcoat={1}
+          clearcoatRoughness={0.12}
+        />
       </mesh>
     </group>
   );
@@ -211,12 +224,18 @@ function RigPart({
 export interface RobotArmProps {
   joints: JointAngles;
   showToolAxes?: boolean;
+  onReady?: () => void;
 }
 
-export function RobotArm({ joints, showToolAxes = true }: RobotArmProps) {
+export function RobotArm({ joints, showToolAxes = true, onReady }: RobotArmProps) {
   const fk = useMemo(() => forwardKinematics(joints), [joints]);
   const geometries = useRigGeometries();
   const j1Rad = (joints.j1 * Math.PI) / 180;
+
+  useEffect(() => {
+    if (geometries) onReady?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geometries]);
 
   if (!geometries) return null;
 
@@ -228,9 +247,9 @@ export function RobotArm({ joints, showToolAxes = true }: RobotArmProps) {
         <RigPart key={entry.file} index={i} geometry={geometries[i]} fk={fk} j1Rad={j1Rad} />
       ))}
 
-      <JointCollar at={O1} radius={0.1} color="#3a3f4b" />
-      <JointCollar at={O2} radius={0.095} color="#3a3f4b" />
-      <JointCollar at={O3} radius={0.075} color="#3a3f4b" />
+      <JointCollar at={O1} radius={0.1} color="#e8790f" glossy />
+      <JointCollar at={O2} radius={0.095} color="#2c2f38" />
+      <JointCollar at={O3} radius={0.075} color="#2c2f38" />
 
       <CableBundle fk={fk} j1Rad={j1Rad} />
 

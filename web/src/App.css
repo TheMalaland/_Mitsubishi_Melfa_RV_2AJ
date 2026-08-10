@@ -50,6 +50,23 @@ body {
   font-family: var(--sans);
 }
 
+/* Cross-fade the whole palette on theme toggle instead of an abrupt swap. */
+.app,
+.app-header,
+.sidebar,
+.tabs,
+.tab,
+.panel,
+.results,
+.field input,
+.field select,
+button,
+.viewer-controls-group,
+.viewer-loading,
+.status-line {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
 *:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -100,6 +117,19 @@ body {
   flex-shrink: 0;
   background: var(--accent);
   box-shadow: 0 0 8px var(--accent);
+  animation: led-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes led-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 3px var(--accent);
+  }
 }
 
 .app-header-text h1 {
@@ -225,6 +255,34 @@ body {
 .viewer canvas {
   display: block;
   touch-action: none;
+}
+
+/* HUD-style corner brackets framing the viewport, like a camera viewfinder
+   or a teach pendant's jog screen — reinforces the instrument-panel identity
+   at the one spot (the 3D view) that would otherwise be a bare rectangle. */
+.viewer::before,
+.viewer::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.viewer::before {
+  top: 10px;
+  left: 10px;
+  border-top: 2px solid var(--accent);
+  border-left: 2px solid var(--accent);
+}
+
+.viewer::after {
+  bottom: 10px;
+  right: 10px;
+  border-bottom: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
 }
 
 @media (max-width: 780px) {
@@ -469,7 +527,7 @@ button {
   color: var(--accent-text);
   width: 100%;
   margin-bottom: 10px;
-  transition: filter 0.15s;
+  transition: filter 0.15s, transform 0.08s, box-shadow 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -482,6 +540,7 @@ button:hover:not(:disabled) {
 
 button:active:not(:disabled) {
   filter: brightness(0.95);
+  transform: translateY(1px);
 }
 
 button:disabled {
@@ -669,6 +728,11 @@ table.matrix td {
   cursor: pointer;
   padding: 0;
   margin: 0;
+  transition: border-color 0.15s, transform 0.12s;
+}
+
+.viewer-swatch:hover {
+  transform: scale(1.08);
 }
 
 .viewer-swatch.active {
@@ -686,4 +750,62 @@ table.matrix td {
 .viewer-demo-btn.active {
   background: var(--danger);
   color: #fff;
+}
+
+/* --- Model loading overlay --- */
+.viewer-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: color-mix(in srgb, var(--bg-page) 55%, transparent);
+  animation: overlay-in 0.2s ease;
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.viewer-loading-bar {
+  width: 160px;
+  height: 3px;
+  background: var(--bg-tab);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.viewer-loading-bar span {
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: loading-sweep 1.1s ease-in-out infinite;
+}
+
+@keyframes loading-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+.viewer-loading p {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
 }

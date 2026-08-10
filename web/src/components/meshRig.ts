@@ -48,15 +48,16 @@ const REACH_2BRAT = 298;
 const REACH_3BRAT = 201;
 const REACH_4BRAT = 46;
 
-// Off-white body with an amber accent shoulder, matching the UI's
-// instrument-panel palette instead of a generic blue.
-const BODY = '#e8e6df';
-const ACCENT = '#e8790f';
-const JOINT = '#3a3f4b';
+// Pearl-white body matching the real RV-2AJ's factory finish, with the
+// amber accent pared back to a small badge (JointCollar in RobotArm.tsx)
+// instead of covering a whole link — the real machine is almost entirely
+// white/grey with dark joint housings, not a painted shoulder.
+const BODY = '#eeece4';
+const JOINT = '#2c2f38';
 
 export const MESH_RIG: MeshRigEntry[] = [
   { file: 'baza.stl', color: BODY, positionFrame: 0, rotationFrame: 0 },
-  { file: '1brat.stl', color: ACCENT, positionFrame: 0, rotationFrame: 0, baseSpinOnly: true, scaleZ: LINK.L1 / REACH_1BRAT },
+  { file: '1brat.stl', color: BODY, positionFrame: 0, rotationFrame: 0, baseSpinOnly: true, scaleZ: LINK.L1 / REACH_1BRAT },
   { file: '2brat.stl', color: BODY, positionFrame: 1, rotationFrame: 2, scaleZ: LINK.L2 / REACH_2BRAT, mountEuler: MOUNT_Y90 },
   { file: '3brat.stl', color: BODY, positionFrame: 2, rotationFrame: 3, scaleZ: LINK.L3 / REACH_3BRAT, mountEuler: MOUNT_Y90 },
   { file: '4brat.stl', color: JOINT, positionFrame: 3, rotationFrame: 4, scaleZ: LINK.L4 / REACH_4BRAT },
