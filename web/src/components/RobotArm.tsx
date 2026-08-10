@@ -65,41 +65,6 @@ function JointCollar({ at, radius, color, glossy = false }: { at: Vec3; radius: 
   );
 }
 
-// A real RV-2AJ has a visible cable bundle running along the outside of the
-// arm from the base to the wrist — without it the bare CAD links read as an
-// unfinished skeleton. This traces a soft tube through each joint, offset
-// to one side using that joint's own frame so it rides along consistently
-// as the arm moves, rather than cutting straight through the links.
-function CableBundle({ fk, j1Rad }: { fk: ReturnType<typeof forwardKinematics>; j1Rad: number }) {
-  const curve = useMemo(() => {
-    const sideOffset = (originIdx: 0 | 1 | 2 | 3 | 4 | 5, matIdx: 0 | 1 | 2 | 3 | 4 | 5, distanceMm: number) => {
-      const origin = fk.origins[originIdx];
-      const m = new THREE.Matrix4().set(...(fk.matrices[matIdx] as unknown as Parameters<THREE.Matrix4['set']>));
-      const side = new THREE.Vector3(0, 1, 0).transformDirection(m);
-      const p = new THREE.Vector3(...toScene(origin));
-      p.addScaledVector(side, distanceMm * MM_TO_UNIT);
-      return p;
-    };
-
-    // The base point has to spin with J1 too (1brat's own frame, not the
-    // static world frame) — otherwise it stays put in world space while the
-    // rest of the cable swings around it, cutting straight through the base.
-    const baseSpin = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), j1Rad);
-    const baseSide = new THREE.Vector3(0, 1, 0).applyQuaternion(baseSpin);
-    const base = new THREE.Vector3(0, 0, 0.9).addScaledVector(baseSide, 92 * MM_TO_UNIT);
-
-    const points = [base, sideOffset(1, 1, 80), sideOffset(2, 2, 62), sideOffset(3, 3, 44)];
-    return new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.3);
-  }, [fk, j1Rad]);
-
-  return (
-    <mesh>
-      <tubeGeometry args={[curve, 48, 0.045, 10, false]} />
-      <meshStandardMaterial color="#1c1e24" metalness={0.1} roughness={0.75} />
-    </mesh>
-  );
-}
-
 function ToolGizmo({ matrix }: { matrix: Mat4 }) {
   const m = useMemo(() => new THREE.Matrix4().set(...(matrix as unknown as Parameters<THREE.Matrix4['set']>)), [matrix]);
   const origin = new THREE.Vector3().setFromMatrixPosition(m);
@@ -208,13 +173,17 @@ function RigPart({
       <mesh geometry={geometry} scale={scale} castShadow receiveShadow>
         {/* Clearcoat over a low-metalness base reads as painted/molded plastic
             (the real RV-2AJ's glossy pearl-white finish) instead of the flat
-            matte look a plain standard material gives. */}
+            matte look a plain standard material gives. envMapIntensity is
+            capped well below 1 — at full strength the studio environment's
+            darker corners mirror sharply in the concave creases between
+            links and read as a black gap/crack, which isn't there. */}
         <meshPhysicalMaterial
           color={entry.color}
           metalness={0.08}
-          roughness={0.32}
-          clearcoat={1}
-          clearcoatRoughness={0.12}
+          roughness={0.4}
+          clearcoat={0.8}
+          clearcoatRoughness={0.35}
+          envMapIntensity={0.35}
         />
       </mesh>
     </group>
@@ -247,11 +216,9 @@ export function RobotArm({ joints, showToolAxes = true, onReady }: RobotArmProps
         <RigPart key={entry.file} index={i} geometry={geometries[i]} fk={fk} j1Rad={j1Rad} />
       ))}
 
-      <JointCollar at={O1} radius={0.1} color="#e8790f" glossy />
-      <JointCollar at={O2} radius={0.095} color="#2c2f38" />
-      <JointCollar at={O3} radius={0.075} color="#2c2f38" />
-
-      <CableBundle fk={fk} j1Rad={j1Rad} />
+      <JointCollar at={O1} radius={0.13} color="#e8790f" glossy />
+      <JointCollar at={O2} radius={0.13} color="#2c2f38" />
+      <JointCollar at={O3} radius={0.1} color="#2c2f38" />
 
       {showToolAxes && <ToolGizmo matrix={fk.matrix} />}
     </group>
