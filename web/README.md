@@ -52,17 +52,27 @@ Vercel, Netlify, GitHub Pages o cualquier hosting estático, sin backend.
 
 ### Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FTheMalaland%2F_Mitsubishi_Melfa_RV_2AJ&root-directory=web&project-name=melfa-rv-2aj-simulador&repository-name=melfa-rv-2aj-simulador)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FTheMalaland%2F_Mitsubishi_Melfa_RV_2AJ&project-name=melfa-rv-2aj-simulador&repository-name=melfa-rv-2aj-simulador)
 
-Este proyecto vive en `web/` dentro del repo, no en la raíz, así que al
-importar en Vercel manualmente (sin el botón de arriba) hay que fijar eso:
+Este proyecto vive en `web/` dentro del repo, no en la raíz. En vez de depender
+del selector "Root Directory" del dashboard de Vercel (que solo escanea
+carpetas de la rama *default* de GitHub y puede no mostrar `web/`), el
+`vercel.json` de la **raíz del repo** ya le dice a Vercel cómo compilar y qué
+servir, así que no hay que tocar ningún ajuste especial:
 
 1. [vercel.com/new](https://vercel.com/new) → importa este repositorio de GitHub.
-2. En **Root Directory**, selecciona `web` (botón "Edit" junto al campo).
-3. Framework Preset: **Vite** (se detecta solo). Build Command y Output
-   Directory ya quedan definidos en `web/vercel.json` (`npm run build` →
-   `dist`).
+2. **Root Directory**: déjalo en blanco / raíz del repo (el valor por defecto,
+   no lo cambies). El `vercel.json` de la raíz hace `cd web && npm run build`
+   y sirve `web/dist`.
+3. Framework Preset: **Other** (el `vercel.json` ya define `buildCommand`,
+   `installCommand` y `outputDirectory`, así que no depende de la
+   autodetección).
 4. Deploy. No hace falta ninguna variable de entorno — es 100% estático.
+
+Si ya tienes un proyecto creado en Vercel que sigue dando 404, lo más rápido
+es borrarlo (Settings → General → Delete Project, al final de la página) y
+volver a importarlo desde cero con los pasos de arriba — un proyecto nuevo no
+arrastra ningún ajuste de Root Directory mal guardado del intento anterior.
 
 Cada push a la rama conectada vuelve a desplegar automáticamente.
 
