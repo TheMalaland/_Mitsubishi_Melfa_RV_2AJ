@@ -6,15 +6,18 @@ import { InverseKinematicsPanel } from './components/InverseKinematicsPanel';
 import { TrajectoryPanel } from './components/TrajectoryPanel';
 import { HOME_JOINTS, type JointAngles } from './kinematics/constants';
 import type { Vec3 } from './kinematics/forwardKinematics';
+import { useLanguage } from './i18n/LanguageContext';
+import { LANGUAGES, LANGUAGE_LABELS, type Language } from './i18n/translations';
+import type { TranslationKey } from './i18n/translations';
 import './App.css';
 
 type Tab = 'fk' | 'ik' | 'trajectory';
 type Theme = 'dark' | 'light';
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'fk', label: 'Cinemática Directa' },
-  { id: 'ik', label: 'Cinemática Inversa' },
-  { id: 'trajectory', label: 'Trayectorias' },
+const TABS: { id: Tab; labelKey: TranslationKey }[] = [
+  { id: 'fk', labelKey: 'tabFk' },
+  { id: 'ik', labelKey: 'tabIk' },
+  { id: 'trajectory', labelKey: 'tabTrajectory' },
 ];
 
 function useTheme(): [Theme, () => void] {
@@ -60,7 +63,27 @@ function useDemoMotion(active: boolean, onFrame: (joints: JointAngles) => void) 
   }, [active]);
 }
 
+function LanguageSelect() {
+  const { language, setLanguage, t } = useLanguage();
+  return (
+    <select
+      className="language-select"
+      aria-label={t('languageLabel')}
+      title={t('languageLabel')}
+      value={language}
+      onChange={(e) => setLanguage(e.target.value as Language)}
+    >
+      {LANGUAGES.map((l) => (
+        <option key={l} value={l}>
+          {LANGUAGE_LABELS[l]}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 function App() {
+  const { t } = useLanguage();
   const [tab, setTab] = useState<Tab>('fk');
   const [joints, setJoints] = useState<JointAngles>(HOME_JOINTS);
   const [pathPoints, setPathPoints] = useState<Vec3[]>([]);
@@ -91,23 +114,22 @@ function App() {
       <header className={headerCollapsed ? 'app-header collapsed' : 'app-header'}>
         {!headerCollapsed && (
           <div className="app-header-text">
-            <h1>Mitsubishi Melfa RV-2AJ · Simulador Web</h1>
-            <p>
-              Migración a la web del proyecto original de MATLAB/Simulink para el brazo robótico de 5 ejes Melfa RV-2AJ.
-            </p>
+            <h1>{t('appTitle')}</h1>
+            <p>{t('appSubtitle')}</p>
           </div>
         )}
         <div className="app-header-actions">
           <button
             type="button"
             className="icon-toggle"
-            title={headerCollapsed ? 'Mostrar encabezado' : 'Minimizar encabezado'}
+            title={headerCollapsed ? t('headerExpand') : t('headerCollapse')}
             onClick={() => setHeaderCollapsed((c) => !c)}
           >
             {headerCollapsed ? '▾' : '▴'}
           </button>
+          <LanguageSelect />
           <button type="button" className="theme-toggle" onClick={toggleTheme}>
-            {theme === 'dark' ? '☀️' : '🌙'} <span>{theme === 'dark' ? 'Claro' : 'Oscuro'}</span>
+            {theme === 'dark' ? '☀️' : '🌙'} <span>{theme === 'dark' ? t('themeLight') : t('themeDark')}</span>
           </button>
         </div>
       </header>
@@ -115,20 +137,29 @@ function App() {
       <div className={sidebarCollapsed ? 'app-body sidebar-collapsed' : 'app-body'}>
         <aside className={sidebarCollapsed ? 'sidebar collapsed' : 'sidebar'}>
           {sidebarCollapsed ? (
-            <button type="button" className="icon-toggle sidebar-expand" title="Mostrar menú" onClick={() => setSidebarCollapsed(false)}>
+            <button
+              type="button"
+              className="icon-toggle sidebar-expand"
+              title={t('sidebarExpand')}
+              onClick={() => setSidebarCollapsed(false)}
+            >
               ▸
             </button>
           ) : (
             <>
               <div className="sidebar-top">
                 <nav className="tabs">
-                  {TABS.map((t) => (
-                    <button key={t.id} className={t.id === tab ? 'tab active' : 'tab'} onClick={() => handleTab(t.id)}>
-                      {t.label}
+                  {TABS.map((tabDef) => (
+                    <button
+                      key={tabDef.id}
+                      className={tabDef.id === tab ? 'tab active' : 'tab'}
+                      onClick={() => handleTab(tabDef.id)}
+                    >
+                      {t(tabDef.labelKey)}
                     </button>
                   ))}
                 </nav>
-                <button type="button" className="icon-toggle" title="Minimizar menú" onClick={() => setSidebarCollapsed(true)}>
+                <button type="button" className="icon-toggle" title={t('sidebarCollapse')} onClick={() => setSidebarCollapsed(true)}>
                   ◂
                 </button>
               </div>

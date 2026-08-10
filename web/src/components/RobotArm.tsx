@@ -61,6 +61,35 @@ function JointCollar({ at, radius, color }: { at: Vec3; radius: number; color: s
   );
 }
 
+// A real RV-2AJ has a visible cable bundle running along the outside of the
+// arm from the base to the wrist — without it the bare CAD links read as an
+// unfinished skeleton. This traces a soft tube through each joint, offset
+// to one side using that joint's own frame so it rides along consistently
+// as the arm moves, rather than cutting straight through the links.
+function CableBundle({ fk }: { fk: ReturnType<typeof forwardKinematics> }) {
+  const curve = useMemo(() => {
+    const sideOffset = (originIdx: 0 | 1 | 2 | 3 | 4 | 5, matIdx: 0 | 1 | 2 | 3 | 4 | 5, distanceMm: number) => {
+      const origin = fk.origins[originIdx];
+      const m = new THREE.Matrix4().set(...(fk.matrices[matIdx] as unknown as Parameters<THREE.Matrix4['set']>));
+      const side = new THREE.Vector3(0, 1, 0).transformDirection(m);
+      const p = new THREE.Vector3(...toScene(origin));
+      p.addScaledVector(side, distanceMm * MM_TO_UNIT);
+      return p;
+    };
+
+    const base = sideOffset(0, 0, 92).setZ(0.9);
+    const points = [base, sideOffset(1, 1, 80), sideOffset(2, 2, 62), sideOffset(3, 3, 44)];
+    return new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.3);
+  }, [fk]);
+
+  return (
+    <mesh>
+      <tubeGeometry args={[curve, 48, 0.045, 10, false]} />
+      <meshStandardMaterial color="#1c1e24" metalness={0.1} roughness={0.75} />
+    </mesh>
+  );
+}
+
 function ToolGizmo({ matrix }: { matrix: Mat4 }) {
   const m = useMemo(() => new THREE.Matrix4().set(...(matrix as unknown as Parameters<THREE.Matrix4['set']>)), [matrix]);
   const origin = new THREE.Vector3().setFromMatrixPosition(m);
@@ -196,6 +225,8 @@ export function RobotArm({ joints, showToolAxes = true }: RobotArmProps) {
       <JointCollar at={O1} radius={0.1} color="#3a3f4b" />
       <JointCollar at={O2} radius={0.095} color="#3a3f4b" />
       <JointCollar at={O3} radius={0.075} color="#3a3f4b" />
+
+      <CableBundle fk={fk} />
 
       {showToolAxes && <ToolGizmo matrix={fk.matrix} />}
     </group>

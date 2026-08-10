@@ -15,7 +15,8 @@ export interface InverseKinematicsInput {
 
 export type InverseKinematicsResult =
   | { ok: true; joints: JointAngles }
-  | { ok: false; reason: string };
+  | { ok: false; errorCode: 'workspace' }
+  | { ok: false; errorCode: 'jointRange'; joint: keyof JointAngles; value: number; min: number; max: number };
 
 function outOfRange(name: keyof JointAngles, value: number): boolean {
   const [min, max] = JOINT_LIMITS[name];
@@ -43,7 +44,7 @@ export function inverseKinematics({ x, y, z, alpha, beta }: InverseKinematicsInp
   const c = Math.sqrt((r - a) ** 2 + (z - b - L1) ** 2);
   const cosC = (L2 ** 2 + L3 ** 2 - c ** 2) / (2 * L2 * L3);
   if (Math.abs(cosC) > 1) {
-    return { ok: false, reason: 'Coordinate is outside the robot workspace (unreachable elbow geometry).' };
+    return { ok: false, errorCode: 'workspace' };
   }
   const senC = Math.sqrt(1 - cosC ** 2);
   const theta3 = Math.PI - Math.atan2(senC, cosC);
@@ -67,10 +68,7 @@ export function inverseKinematics({ x, y, z, alpha, beta }: InverseKinematicsInp
   for (const key of Object.keys(joints) as (keyof JointAngles)[]) {
     if (outOfRange(key, joints[key])) {
       const [min, max] = JOINT_LIMITS[key];
-      return {
-        ok: false,
-        reason: `Joint ${key.toUpperCase()} = ${joints[key].toFixed(1)}° is outside its range [${min}°, ${max}°].`,
-      };
+      return { ok: false, errorCode: 'jointRange', joint: key, value: joints[key], min, max };
     }
   }
 

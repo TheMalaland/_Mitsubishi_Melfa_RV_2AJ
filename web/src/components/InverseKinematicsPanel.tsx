@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { inverseKinematics } from '../kinematics/inverseKinematics';
 import type { JointAngles } from '../kinematics/constants';
 import { TRAJECTORY_HOME } from '../kinematics/trajectories';
+import { useLanguage } from '../i18n/LanguageContext';
+import type { TranslationKey } from '../i18n/translations';
 
 interface Pose {
   x: number;
@@ -13,12 +15,12 @@ interface Pose {
 
 const DEFAULT_POSE: Pose = { ...TRAJECTORY_HOME };
 
-const FIELDS: { key: keyof Pose; label: string; unit: string }[] = [
-  { key: 'x', label: 'X', unit: 'mm' },
-  { key: 'y', label: 'Y', unit: 'mm' },
-  { key: 'z', label: 'Z', unit: 'mm' },
-  { key: 'alpha', label: 'Alpha', unit: '°' },
-  { key: 'beta', label: 'Beta', unit: '°' },
+const FIELDS: { key: keyof Pose; labelKey: TranslationKey; unit: string }[] = [
+  { key: 'x', labelKey: 'labelX', unit: 'mm' },
+  { key: 'y', labelKey: 'labelY', unit: 'mm' },
+  { key: 'z', labelKey: 'labelZ', unit: 'mm' },
+  { key: 'alpha', labelKey: 'labelAlpha', unit: '°' },
+  { key: 'beta', labelKey: 'labelBeta', unit: '°' },
 ];
 
 export function InverseKinematicsPanel({
@@ -28,6 +30,7 @@ export function InverseKinematicsPanel({
   onJointsChange: (j: JointAngles) => void;
   onTargetChange: (p: Pose | null) => void;
 }) {
+  const { t } = useLanguage();
   const [pose, setPose] = useState<Pose>(DEFAULT_POSE);
   const [result, setResult] = useState<ReturnType<typeof inverseKinematics> | null>(null);
 
@@ -44,15 +47,27 @@ export function InverseKinematicsPanel({
     }
   };
 
+  const errorMessage =
+    result && !result.ok
+      ? result.errorCode === 'workspace'
+        ? t('ikErrorWorkspace')
+        : t('ikErrorJointRange', {
+            joint: result.joint.toUpperCase(),
+            value: result.value.toFixed(1),
+            min: result.min,
+            max: result.max,
+          })
+      : null;
+
   return (
     <div className="panel">
-      <h2>Cinemática Inversa</h2>
-      <p className="panel-hint">Ingresa una posición y orientación deseada del efector final para calcular los ángulos.</p>
+      <h2>{t('ikTitle')}</h2>
+      <p className="panel-hint">{t('ikHint')}</p>
 
-      {FIELDS.map(({ key, label, unit }) => (
+      {FIELDS.map(({ key, labelKey, unit }) => (
         <div className="field" key={key}>
           <label>
-            {label} <span className="value">{pose[key].toFixed(2)} {unit}</span>
+            {t(labelKey)} <span className="value">{pose[key].toFixed(2)} {unit}</span>
           </label>
           <input
             type="number"
@@ -64,17 +79,17 @@ export function InverseKinematicsPanel({
       ))}
 
       <button type="button" onClick={compute}>
-        Calcular ángulos
+        {t('ikCompute')}
       </button>
       <button type="button" className="secondary" onClick={() => setPose(DEFAULT_POSE)}>
-        Restablecer
+        {t('ikReset')}
       </button>
 
       <div className="results">
-        {result && !result.ok && <p className="error">⚠ {result.reason}</p>}
+        {errorMessage && <p className="error">⚠ {errorMessage}</p>}
         {result && result.ok && (
           <>
-            <h3>Ángulos calculados</h3>
+            <h3>{t('ikResultsTitle')}</h3>
             <dl>
               <dt>J1</dt>
               <dd>{result.joints.j1.toFixed(2)}°</dd>

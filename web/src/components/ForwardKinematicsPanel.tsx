@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
 import { forwardKinematics } from '../kinematics/forwardKinematics';
 import { HOME_JOINTS, JOINT_LIMITS, type JointAngles } from '../kinematics/constants';
+import { useLanguage } from '../i18n/LanguageContext';
+import type { TranslationKey } from '../i18n/translations';
 
-const JOINT_LABELS: Record<keyof JointAngles, string> = {
-  j1: 'J1 · Base',
-  j2: 'J2 · Hombro',
-  j3: 'J3 · Codo',
-  j4: 'J4 · Muñeca (pitch)',
-  j5: 'J5 · Muñeca (roll)',
+const JOINT_KEYS: Record<keyof JointAngles, TranslationKey> = {
+  j1: 'jointJ1',
+  j2: 'jointJ2',
+  j3: 'jointJ3',
+  j4: 'jointJ4',
+  j5: 'jointJ5',
 };
 
 export function ForwardKinematicsPanel({ onJointsChange }: { onJointsChange: (j: JointAngles) => void }) {
+  const { t } = useLanguage();
   const [joints, setJoints] = useState<JointAngles>(HOME_JOINTS);
 
   useEffect(() => {
@@ -23,15 +26,15 @@ export function ForwardKinematicsPanel({ onJointsChange }: { onJointsChange: (j:
 
   return (
     <div className="panel">
-      <h2>Cinemática Directa</h2>
-      <p className="panel-hint">Ingresa los ángulos de cada articulación y observa la posición del efector final.</p>
+      <h2>{t('fkTitle')}</h2>
+      <p className="panel-hint">{t('fkHint')}</p>
 
-      {(Object.keys(JOINT_LABELS) as (keyof JointAngles)[]).map((key) => {
+      {(Object.keys(JOINT_KEYS) as (keyof JointAngles)[]).map((key) => {
         const [min, max] = JOINT_LIMITS[key];
         return (
           <div className="field" key={key}>
             <label>
-              {JOINT_LABELS[key]} <span className="value">{joints[key].toFixed(1)}°</span>
+              {t(JOINT_KEYS[key])} <span className="value">{joints[key].toFixed(1)}°</span>
             </label>
             <input
               type="range"
@@ -54,24 +57,24 @@ export function ForwardKinematicsPanel({ onJointsChange }: { onJointsChange: (j:
       })}
 
       <button type="button" className="secondary" onClick={() => setJoints(HOME_JOINTS)}>
-        Restablecer a posición home
+        {t('fkReset')}
       </button>
 
       <div className="results">
-        <h3>Pose del efector final</h3>
+        <h3>{t('fkResultsTitle')}</h3>
         <dl>
-          <dt>X</dt>
+          <dt>{t('labelX')}</dt>
           <dd>{fk.position.x.toFixed(2)} mm</dd>
-          <dt>Y</dt>
+          <dt>{t('labelY')}</dt>
           <dd>{fk.position.y.toFixed(2)} mm</dd>
-          <dt>Z</dt>
+          <dt>{t('labelZ')}</dt>
           <dd>{fk.position.z.toFixed(2)} mm</dd>
-          <dt>Alpha</dt>
+          <dt>{t('labelAlpha')}</dt>
           <dd>{fk.alpha.toFixed(2)}°</dd>
-          <dt>Beta</dt>
+          <dt>{t('labelBeta')}</dt>
           <dd>{fk.beta.toFixed(2)}°</dd>
         </dl>
-        <h3>Matriz de transformación</h3>
+        <h3>{t('fkMatrixTitle')}</h3>
         <table className="matrix">
           <tbody>
             {[0, 1, 2, 3].map((row) => (

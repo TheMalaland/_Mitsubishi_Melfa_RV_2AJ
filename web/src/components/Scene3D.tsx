@@ -5,6 +5,8 @@ import { RobotArm } from './RobotArm';
 import { toScene } from './RobotArm';
 import type { JointAngles } from '../kinematics/constants';
 import type { Vec3 } from '../kinematics/forwardKinematics';
+import { useLanguage } from '../i18n/LanguageContext';
+import type { TranslationKey } from '../i18n/translations';
 
 export interface Scene3DProps {
   joints: JointAngles;
@@ -38,11 +40,11 @@ const SWATCH_PREVIEW: Record<BgPreset, string> = {
   blueprint: 'linear-gradient(135deg, #0c2340, #3f7ab8)',
 };
 
-const SWATCH_LABEL: Record<BgPreset, string> = {
-  dark: 'Oscuro',
-  light: 'Claro',
-  studio: 'Estudio',
-  blueprint: 'Plano técnico',
+const SWATCH_LABEL_KEY: Record<BgPreset, TranslationKey> = {
+  dark: 'viewerBgDark',
+  light: 'viewerBgLight',
+  studio: 'viewerBgStudio',
+  blueprint: 'viewerBgBlueprint',
 };
 
 // The robot's native frame is Z-up (matches the DH/MATLAB convention), so
@@ -51,7 +53,9 @@ const SWATCH_LABEL: Record<BgPreset, string> = {
 // rotation conjugated by the change of basis to avoid mirroring the
 // (asymmetric) CAD parts.
 export function Scene3D({ joints, pathPoints, targetPoint, theme, demo, onToggleDemo }: Scene3DProps) {
+  const { t } = useLanguage();
   const [bg, setBg] = useState<BgPreset>(theme === 'dark' ? 'dark' : 'light');
+  const [controlsCollapsed, setControlsCollapsed] = useState(false);
 
   // Studio/blueprint are explicit choices that persist across the theme
   // toggle; the plain dark/light backdrop follows the header theme.
@@ -104,24 +108,35 @@ export function Scene3D({ joints, pathPoints, targetPoint, theme, demo, onToggle
         <OrbitControls target={[0, 0, 4]} minDistance={2} maxDistance={30} enableDamping dampingFactor={0.08} />
       </Canvas>
 
-      <div className="viewer-controls">
-        <div className="viewer-controls-group">
-          {(Object.keys(SWATCH_PREVIEW) as BgPreset[]).map((p) => (
-            <button
-              key={p}
-              type="button"
-              title={SWATCH_LABEL[p]}
-              aria-label={SWATCH_LABEL[p]}
-              className={p === bg ? 'viewer-swatch active' : 'viewer-swatch'}
-              style={{ background: SWATCH_PREVIEW[p] }}
-              onClick={() => setBg(p)}
-            />
-          ))}
+      <button
+        type="button"
+        className="icon-toggle viewer-controls-toggle"
+        title={controlsCollapsed ? t('viewerControlsExpand') : t('viewerControlsCollapse')}
+        onClick={() => setControlsCollapsed((c) => !c)}
+      >
+        {controlsCollapsed ? '◂' : '▸'}
+      </button>
+
+      {!controlsCollapsed && (
+        <div className="viewer-controls">
+          <div className="viewer-controls-group">
+            {(Object.keys(SWATCH_PREVIEW) as BgPreset[]).map((p) => (
+              <button
+                key={p}
+                type="button"
+                title={t(SWATCH_LABEL_KEY[p])}
+                aria-label={t(SWATCH_LABEL_KEY[p])}
+                className={p === bg ? 'viewer-swatch active' : 'viewer-swatch'}
+                style={{ background: SWATCH_PREVIEW[p] }}
+                onClick={() => setBg(p)}
+              />
+            ))}
+          </div>
+          <button type="button" className={demo ? 'viewer-demo-btn active' : 'viewer-demo-btn'} onClick={onToggleDemo}>
+            {demo ? `⏸ ${t('viewerDemoStop')}` : `▶ ${t('viewerDemoPlay')}`}
+          </button>
         </div>
-        <button type="button" className={demo ? 'viewer-demo-btn active' : 'viewer-demo-btn'} onClick={onToggleDemo}>
-          {demo ? '⏸ Detener demo' : '▶ Demo'}
-        </button>
-      </div>
+      )}
     </div>
   );
 }
