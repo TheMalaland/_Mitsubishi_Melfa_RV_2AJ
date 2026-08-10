@@ -105,7 +105,15 @@ export function Scene3D({ joints, pathPoints, targetPoint, theme, demo, onToggle
           </mesh>
         )}
 
-        <OrbitControls target={[0, 0, 4]} minDistance={2} maxDistance={30} enableDamping dampingFactor={0.08} />
+        <OrbitControls
+          target={[0, 0, 4]}
+          minDistance={2}
+          maxDistance={30}
+          enableDamping
+          dampingFactor={0.08}
+          autoRotate={demo}
+          autoRotateSpeed={1.1}
+        />
       </Canvas>
 
       <button

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Scene3D } from './components/Scene3D';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ForwardKinematicsPanel } from './components/ForwardKinematicsPanel';
@@ -9,6 +9,7 @@ import type { Vec3 } from './kinematics/forwardKinematics';
 import { useLanguage } from './i18n/LanguageContext';
 import { LANGUAGES, LANGUAGE_LABELS, type Language } from './i18n/translations';
 import type { TranslationKey } from './i18n/translations';
+import { useDemoMotion } from './demoChoreography';
 import './App.css';
 
 type Tab = 'fk' | 'ik' | 'trajectory';
@@ -32,35 +33,6 @@ function useTheme(): [Theme, () => void] {
   }, [theme]);
 
   return [theme, () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))];
-}
-
-// Gentle idle sweep so the arm feels alive when nobody is touching the controls.
-function useDemoMotion(active: boolean, onFrame: (joints: JointAngles) => void) {
-  const rafRef = useRef<number | null>(null);
-  const startRef = useRef(0);
-
-  useEffect(() => {
-    if (!active) return;
-    startRef.current = performance.now();
-
-    const tick = (now: number) => {
-      const t = (now - startRef.current) / 1000;
-      onFrame({
-        j1: Math.sin(t * 0.5) * 45,
-        j2: 30 + Math.sin(t * 0.7 + 1) * 25,
-        j3: -35 + Math.sin(t * 0.6 + 2) * 30,
-        j4: Math.sin(t * 0.9 + 0.5) * 30,
-        j5: Math.sin(t * 0.4) * 60,
-      });
-      rafRef.current = requestAnimationFrame(tick);
-    };
-    rafRef.current = requestAnimationFrame(tick);
-
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active]);
 }
 
 function LanguageSelect() {
