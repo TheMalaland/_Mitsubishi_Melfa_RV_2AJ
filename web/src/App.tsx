@@ -101,7 +101,7 @@ function App() {
           </button>
           <LanguageSelect />
           <button type="button" className="theme-toggle" onClick={toggleTheme}>
-            {theme === 'dark' ? '☀️' : '🌙'} <span>{theme === 'dark' ? t('themeLight') : t('themeDark')}</span>
+            <span>{theme === 'dark' ? t('themeLight') : t('themeDark')}</span>
           </button>
         </div>
       </header>

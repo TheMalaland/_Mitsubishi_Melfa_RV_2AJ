@@ -48,10 +48,10 @@ const REACH_2BRAT = 298;
 const REACH_3BRAT = 201;
 const REACH_4BRAT = 46;
 
-// Off-white body with a blue accent shoulder, similar in spirit to the real
-// RV-2AJ's ivory-and-blue color scheme.
+// Off-white body with an amber accent shoulder, matching the UI's
+// instrument-panel palette instead of a generic blue.
 const BODY = '#e8e6df';
-const ACCENT = '#2f6fed';
+const ACCENT = '#e8790f';
 const JOINT = '#3a3f4b';
 
 export const MESH_RIG: MeshRigEntry[] = [

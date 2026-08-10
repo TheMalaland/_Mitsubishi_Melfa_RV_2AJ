@@ -85,26 +85,25 @@ export function InverseKinematicsPanel({
         {t('ikReset')}
       </button>
 
-      <div className="results">
-        {errorMessage && <p className="error">⚠ {errorMessage}</p>}
-        {result && result.ok && (
-          <>
-            <h3>{t('ikResultsTitle')}</h3>
-            <dl>
-              <dt>J1</dt>
-              <dd>{result.joints.j1.toFixed(2)}°</dd>
-              <dt>J2</dt>
-              <dd>{result.joints.j2.toFixed(2)}°</dd>
-              <dt>J3</dt>
-              <dd>{result.joints.j3.toFixed(2)}°</dd>
-              <dt>J4</dt>
-              <dd>{result.joints.j4.toFixed(2)}°</dd>
-              <dt>J5</dt>
-              <dd>{result.joints.j5.toFixed(2)}°</dd>
-            </dl>
-          </>
-        )}
-      </div>
+      {errorMessage && <p className="status-line error">{errorMessage}</p>}
+
+      {result && result.ok && (
+        <div className="results">
+          <h3>{t('ikResultsTitle')}</h3>
+          <dl>
+            <dt>J1</dt>
+            <dd>{result.joints.j1.toFixed(2)}°</dd>
+            <dt>J2</dt>
+            <dd>{result.joints.j2.toFixed(2)}°</dd>
+            <dt>J3</dt>
+            <dd>{result.joints.j3.toFixed(2)}°</dd>
+            <dt>J4</dt>
+            <dd>{result.joints.j4.toFixed(2)}°</dd>
+            <dt>J5</dt>
+            <dd>{result.joints.j5.toFixed(2)}°</dd>
+          </dl>
+        </div>
+      )}
     </div>
   );
 }

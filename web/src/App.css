@@ -1,40 +1,65 @@
+/*
+  Design language: an instrument panel, not a SaaS dashboard — grounded in
+  teach pendants and CNC controllers (graphite housing, stenciled amber
+  labels, phosphor-teal digital readouts). Sharp corners, hairline borders,
+  monospace numerics, uppercase tracked labels instead of rounded cards and
+  a generic accent blue.
+*/
+
 :root {
-  /* Dark theme (default) */
-  --bg-page: #0c0d12;
-  --bg-panel: #14151c;
-  --bg-input: #1b1d26;
-  --bg-tab: #1b1d26;
-  --border: #22242e;
-  --text: #e6e8ef;
-  --text-muted: #8a8fa3;
-  --accent: #2f6fed;
-  --accent-text: #ffffff;
-  --value: #57c7ff;
-  --shadow: rgba(0, 0, 0, 0.35);
+  /* Dark (default) — graphite housing */
+  --bg-page: #191815;
+  --bg-panel: #211f1b;
+  --bg-input: #141310;
+  --bg-tab: #29271f;
+  --border: #3c392f;
+  --text: #ece6d6;
+  --text-muted: #928c78;
+  --accent: #ff8a1f;
+  --accent-text: #19181a;
+  --data: #52e0c4;
+  --danger: #ff6b5b;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  --sans: -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
 :root[data-theme='light'] {
-  --bg-page: #eef0f3;
-  --bg-panel: #f6f7f9;
-  --bg-input: #ffffff;
-  --bg-tab: #e4e7ec;
-  --border: #d7dbe2;
-  --text: #1b1f27;
-  --text-muted: #626b7a;
-  --accent: #2f6fed;
+  /* Light — brushed aluminum housing */
+  --bg-page: #e6e3d8;
+  --bg-panel: #f0eee3;
+  --bg-input: #fbfaf5;
+  --bg-tab: #ddd9c8;
+  --border: #c6c1ac;
+  --text: #262319;
+  --text-muted: #6c6752;
+  --accent: #c15a00;
   --accent-text: #ffffff;
-  --value: #175fd6;
-  --shadow: rgba(30, 41, 59, 0.12);
+  --data: #0a7d68;
+  --danger: #b8281a;
+  --shadow: rgba(38, 35, 25, 0.16);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   background: var(--bg-page);
   color: var(--text);
+  font-family: var(--sans);
 }
 
 *:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }
 
 .app {
@@ -51,7 +76,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 24px;
+  padding: 13px 24px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-panel);
   transition: padding 0.15s;
@@ -62,24 +87,35 @@ body {
   justify-content: flex-end;
 }
 
+.app-header-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-header-text::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
 .app-header-text h1 {
-  margin: 0 0 4px;
-  font-size: 19px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--text);
 }
 
-.app-header-text h1::before {
-  content: '🦾';
-  margin-right: 8px;
-  font-size: 17px;
-}
-
 .app-header-text p {
-  margin: 0;
-  font-size: 13px;
+  margin: 2px 0 0;
+  font-size: 12px;
   color: var(--text-muted);
+  max-width: 60ch;
 }
 
 .app-header-actions {
@@ -90,8 +126,8 @@ body {
 }
 
 .icon-toggle {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
   margin: 0;
   padding: 0;
@@ -100,16 +136,17 @@ body {
   justify-content: center;
   background: var(--bg-input);
   border: 1px solid var(--border);
+  border-radius: 3px;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1;
-  transition: color 0.15s, border-color 0.15s, transform 0.1s;
+  transition: color 0.15s, border-color 0.15s;
 }
 
 .icon-toggle:hover:not(:disabled) {
   color: var(--text);
   border-color: var(--accent);
-  transform: translateY(0);
+  transform: none;
   filter: none;
 }
 
@@ -117,27 +154,29 @@ body {
   flex-shrink: 0;
   width: auto;
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
   background: var(--bg-input);
   border: 1px solid var(--border);
+  border-radius: 3px;
   color: var(--text);
-  padding: 8px 12px;
-  font-size: 12.5px;
+  padding: 0 12px;
+  height: 32px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .language-select {
   flex-shrink: 0;
   width: auto;
-  height: 34px;
+  height: 32px;
   margin: 0;
   background: var(--bg-input);
   border: 1px solid var(--border);
+  border-radius: 3px;
   color: var(--text);
   padding: 0 8px;
-  font-size: 12.5px;
-  border-radius: 7px;
+  font-size: 12px;
 }
 
 .app-body {
@@ -194,15 +233,15 @@ body {
   }
 
   .app-header-text h1 {
-    font-size: 15px;
+    font-size: 13px;
   }
 
   .app-header-text p {
     display: none;
   }
 
-  .theme-toggle span {
-    display: none;
+  .theme-toggle {
+    padding: 0 8px;
   }
 
   .app-body {
@@ -247,24 +286,26 @@ body {
 
 .tabs {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   margin-bottom: 18px;
   background: var(--bg-tab);
-  border-radius: 8px;
-  padding: 4px;
+  border: 1px solid var(--border);
+  padding: 2px;
 }
 
 .tab {
   flex: 1;
   background: transparent;
   border: none;
+  border-bottom: 2px solid transparent;
   color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 8px 6px;
-  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 8px 4px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .tab:hover {
@@ -272,9 +313,9 @@ body {
 }
 
 .tab.active {
-  background: var(--accent);
-  color: var(--accent-text);
-  box-shadow: 0 2px 8px var(--shadow);
+  background: var(--bg-input);
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
 .panel {
@@ -293,7 +334,10 @@ body {
 }
 
 .panel h2 {
-  font-size: 16px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin: 0 0 6px;
   color: var(--text);
 }
@@ -302,7 +346,7 @@ body {
   font-size: 12.5px;
   color: var(--text-muted);
   margin: 0 0 16px;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .field {
@@ -312,13 +356,21 @@ body {
 .field label {
   display: flex;
   justify-content: space-between;
-  font-size: 12.5px;
+  align-items: baseline;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
   color: var(--text);
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 
 .field .value {
-  color: var(--value);
+  font-family: var(--mono);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--data);
   font-variant-numeric: tabular-nums;
 }
 
@@ -333,47 +385,47 @@ body {
 }
 
 .field input[type='range']::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 2px;
+  height: 3px;
   background: var(--bg-tab);
+  border: 1px solid var(--border);
 }
 
 .field input[type='range']::-moz-range-track {
-  height: 4px;
-  border-radius: 2px;
+  height: 3px;
   background: var(--bg-tab);
+  border: 1px solid var(--border);
 }
 
+/* Fader-cap thumb, like a mixing-console slider, not a generic round dot. */
 .field input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
-  margin-top: -7px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
+  margin-top: -8px;
+  width: 10px;
+  height: 19px;
   background: var(--accent);
-  border: 3px solid var(--bg-panel);
-  box-shadow: 0 1px 4px var(--shadow);
+  border: 1px solid var(--accent-text);
+  box-shadow: 0 1px 3px var(--shadow);
   transition: transform 0.12s;
 }
 
 .field input[type='range']::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
+  width: 10px;
+  height: 19px;
+  border-radius: 0;
   background: var(--accent);
-  border: 3px solid var(--bg-panel);
-  box-shadow: 0 1px 4px var(--shadow);
+  border: 1px solid var(--accent-text);
+  box-shadow: 0 1px 3px var(--shadow);
   transition: transform 0.12s;
 }
 
 .field input[type='range']:hover::-webkit-slider-thumb,
 .field input[type='range']:active::-webkit-slider-thumb {
-  transform: scale(1.15);
+  transform: scaleY(1.1);
 }
 
 .field input[type='range']:hover::-moz-range-thumb,
 .field input[type='range']:active::-moz-range-thumb {
-  transform: scale(1.15);
+  transform: scaleY(1.1);
 }
 
 .field input[type='number'] {
@@ -381,10 +433,12 @@ body {
   margin-top: 6px;
   background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 2px;
   padding: 6px 8px;
-  color: var(--text);
+  color: var(--data);
+  font-family: var(--mono);
   font-size: 13px;
+  font-variant-numeric: tabular-nums;
   transition: border-color 0.15s;
 }
 
@@ -396,37 +450,42 @@ body {
   width: 100%;
   background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 2px;
   padding: 8px;
   color: var(--text);
   font-size: 13px;
 }
 
 button {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   border: none;
-  border-radius: 7px;
-  padding: 9px 14px;
+  border-radius: 2px;
+  padding: 10px 14px;
   cursor: pointer;
   background: var(--accent);
   color: var(--accent-text);
   width: 100%;
   margin-bottom: 10px;
-  transition: filter 0.15s, transform 0.1s;
+  transition: filter 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
 }
 
 button:hover:not(:disabled) {
-  filter: brightness(1.1);
-  transform: translateY(-1px);
+  filter: brightness(1.12);
 }
 
 button:active:not(:disabled) {
-  transform: translateY(0);
+  filter: brightness(0.95);
 }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -445,12 +504,12 @@ button.secondary {
   margin-bottom: 10px;
 }
 
+/* --- Digital readout panel --- */
 .results {
   margin-top: 18px;
-  padding: 14px;
+  padding: 12px 14px;
   background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: 10px;
 }
 
 .results > *:last-child {
@@ -458,9 +517,10 @@ button.secondary {
 }
 
 .results h3 {
-  font-size: 12.5px;
+  font-size: 10.5px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
   margin: 0 0 8px;
 }
@@ -468,58 +528,109 @@ button.secondary {
 .results dl {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 4px 12px;
+  gap: 5px 12px;
   margin: 0 0 16px;
-  font-size: 13px;
+  font-size: 12.5px;
 }
 
 .results dt {
   color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  align-self: center;
 }
 
 .results dd {
   margin: 0;
-  color: var(--text);
+  color: var(--data);
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums;
   text-align: right;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--data) 45%, transparent);
 }
 
 table.matrix {
   width: 100%;
   border-collapse: collapse;
-  font-size: 11.5px;
+  font-family: var(--mono);
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
+  color: var(--data);
 }
 
 table.matrix td {
   padding: 5px 6px;
   border: 1px solid var(--border);
   text-align: right;
-  color: var(--text);
+}
+
+.status-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  font-size: 11.5px;
+  border: 1px solid;
+}
+
+.status-line::before {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
 }
 
 .error {
-  background: rgba(255, 77, 109, 0.12);
-  border: 1px solid rgba(255, 77, 109, 0.4);
-  color: #ff5577;
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 12.5px;
-  margin: 0;
+  background: color-mix(in srgb, var(--danger) 12%, var(--bg-panel));
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+  color: var(--danger);
+}
+
+.error::before {
+  content: 'FAULT';
 }
 
 .warning {
-  background: rgba(255, 191, 71, 0.14);
-  border: 1px solid rgba(255, 191, 71, 0.4);
-  color: #b3760a;
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 12.5px;
-  margin: 0;
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-panel));
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
 }
 
-:root[data-theme='light'] .error {
-  color: #c81e46;
+.warning::before {
+  content: 'WARN';
+}
+
+/* --- Icons (CSS shapes, inherit currentColor — no emoji) --- */
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-play {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 6px 0 6px 9px;
+  border-color: transparent transparent transparent currentColor;
+}
+
+.icon-pause {
+  gap: 3px;
+}
+
+.icon-pause span {
+  width: 3px;
+  height: 12px;
+  background: currentColor;
+}
+
+.icon-stop {
+  width: 10px;
+  height: 10px;
+  background: currentColor;
 }
 
 /* --- Viewer overlay controls --- */
@@ -533,7 +644,7 @@ table.matrix td {
 
 .viewer-controls {
   position: absolute;
-  top: 56px;
+  top: 54px;
   right: 12px;
   display: flex;
   flex-direction: column;
@@ -546,15 +657,14 @@ table.matrix td {
   gap: 4px;
   background: var(--bg-panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
   padding: 4px;
   box-shadow: 0 4px 14px var(--shadow);
 }
 
 .viewer-swatch {
-  width: 28px;
-  height: 28px;
-  border-radius: 5px;
+  width: 26px;
+  height: 26px;
+  border-radius: 0;
   border: 2px solid transparent;
   cursor: pointer;
   padding: 0;
@@ -568,11 +678,12 @@ table.matrix td {
 .viewer-demo-btn {
   width: auto;
   margin: 0;
-  font-size: 12px;
-  padding: 8px 12px;
+  font-size: 11px;
+  padding: 9px 14px;
   box-shadow: 0 4px 14px var(--shadow);
 }
 
 .viewer-demo-btn.active {
-  background: #e0523f;
+  background: var(--danger);
+  color: #fff;
 }

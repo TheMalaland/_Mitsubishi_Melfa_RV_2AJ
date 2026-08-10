@@ -5,6 +5,7 @@ import type { JointAngles } from '../kinematics/constants';
 import type { Vec3 } from '../kinematics/forwardKinematics';
 import { useLanguage } from '../i18n/LanguageContext';
 import type { TranslationKey } from '../i18n/translations';
+import { PauseIcon, PlayIcon, StopIcon } from './icons';
 
 const SHAPE_KEYS: Record<TrajectoryShape, TranslationKey> = {
   circle: 'shapeCircle',
@@ -128,15 +129,19 @@ export function TrajectoryPanel({
 
       <div className="button-row">
         <button type="button" onClick={() => setPlaying((p) => !p)} disabled={jointPath.length === 0}>
-          {playing ? `⏸ ${t('trajPause')}` : `▶ ${t('trajPlay')}`}
+          {playing ? <PauseIcon /> : <PlayIcon />}
+          {playing ? t('trajPause') : t('trajPlay')}
         </button>
         <button type="button" className="secondary" onClick={stop}>
-          ⏹ {t('trajStop')}
+          <StopIcon />
+          {t('trajStop')}
         </button>
       </div>
 
-      {unreachableCount > 0 && <p className="warning">⚠ {t('trajWarningUnreachable', { count: unreachableCount })}</p>}
-      {jointPath.length === 0 && <p className="error">{t('trajErrorNone')}</p>}
+      {unreachableCount > 0 && (
+        <p className="status-line warning">{t('trajWarningUnreachable', { count: unreachableCount })}</p>
+      )}
+      {jointPath.length === 0 && <p className="status-line error">{t('trajErrorNone')}</p>}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import type { JointAngles } from '../kinematics/constants';
 import type { Vec3 } from '../kinematics/forwardKinematics';
 import { useLanguage } from '../i18n/LanguageContext';
 import type { TranslationKey } from '../i18n/translations';
+import { PauseIcon, PlayIcon } from './icons';
 
 export interface Scene3DProps {
   joints: JointAngles;
@@ -20,23 +21,23 @@ export interface Scene3DProps {
 type BgPreset = 'dark' | 'light' | 'studio' | 'blueprint';
 
 const BG_STYLE: Record<BgPreset, { background: string }> = {
-  dark: { background: 'radial-gradient(ellipse at 50% 30%, #1c1f29 0%, #0b0c11 75%)' },
-  light: { background: 'radial-gradient(ellipse at 50% 30%, #f5f6f8 0%, #dbdfe6 100%)' },
-  studio: { background: 'radial-gradient(ellipse at 50% 20%, #ffffff 0%, #c9ccd3 100%)' },
+  dark: { background: 'radial-gradient(ellipse at 50% 30%, #221f19 0%, #100f0c 75%)' },
+  light: { background: 'radial-gradient(ellipse at 50% 30%, #f0eee3 0%, #d6d2c1 100%)' },
+  studio: { background: 'radial-gradient(ellipse at 50% 20%, #ffffff 0%, #cfccc0 100%)' },
   blueprint: { background: 'linear-gradient(160deg, #0c2340 0%, #0a1a30 100%)' },
 };
 
 const GRID_COLORS: Record<BgPreset, { cell: string; section: string }> = {
-  dark: { cell: '#2a2f3d', section: '#3d4457' },
-  light: { cell: '#c3c9d4', section: '#9aa3b5' },
-  studio: { cell: '#d6d9de', section: '#aeb3bd' },
+  dark: { cell: '#332f26', section: '#4a4536' },
+  light: { cell: '#c2bda9', section: '#9d977e' },
+  studio: { cell: '#d6d3c6', section: '#aeaa98' },
   blueprint: { cell: '#25507f', section: '#3f7ab8' },
 };
 
 const SWATCH_PREVIEW: Record<BgPreset, string> = {
-  dark: 'linear-gradient(135deg, #1c1f29, #0b0c11)',
-  light: 'linear-gradient(135deg, #f5f6f8, #dbdfe6)',
-  studio: 'linear-gradient(135deg, #ffffff, #c9ccd3)',
+  dark: 'linear-gradient(135deg, #221f19, #100f0c)',
+  light: 'linear-gradient(135deg, #f0eee3, #d6d2c1)',
+  studio: 'linear-gradient(135deg, #ffffff, #cfccc0)',
   blueprint: 'linear-gradient(135deg, #0c2340, #3f7ab8)',
 };
 
@@ -95,13 +96,13 @@ export function Scene3D({ joints, pathPoints, targetPoint, theme, demo, onToggle
         </Suspense>
 
         {pathPoints && pathPoints.length > 1 && (
-          <Line points={pathPoints.map((p) => toScene(p))} color="#2f6fed" lineWidth={1.5} dashed={false} />
+          <Line points={pathPoints.map((p) => toScene(p))} color="#52e0c4" lineWidth={1.5} dashed={false} />
         )}
 
         {targetPoint && (
           <mesh position={toScene(targetPoint)}>
             <sphereGeometry args={[0.06, 16, 16]} />
-            <meshBasicMaterial color="#ff4d6d" />
+            <meshBasicMaterial color="#ff8a1f" />
           </mesh>
         )}
 
@@ -141,7 +142,8 @@ export function Scene3D({ joints, pathPoints, targetPoint, theme, demo, onToggle
             ))}
           </div>
           <button type="button" className={demo ? 'viewer-demo-btn active' : 'viewer-demo-btn'} onClick={onToggleDemo}>
-            {demo ? `⏸ ${t('viewerDemoStop')}` : `▶ ${t('viewerDemoPlay')}`}
+            {demo ? <PauseIcon /> : <PlayIcon />}
+            {demo ? t('viewerDemoStop') : t('viewerDemoPlay')}
           </button>
         </div>
       )}
