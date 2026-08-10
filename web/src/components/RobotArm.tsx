@@ -66,7 +66,7 @@ function JointCollar({ at, radius, color }: { at: Vec3; radius: number; color: s
 // unfinished skeleton. This traces a soft tube through each joint, offset
 // to one side using that joint's own frame so it rides along consistently
 // as the arm moves, rather than cutting straight through the links.
-function CableBundle({ fk }: { fk: ReturnType<typeof forwardKinematics> }) {
+function CableBundle({ fk, j1Rad }: { fk: ReturnType<typeof forwardKinematics>; j1Rad: number }) {
   const curve = useMemo(() => {
     const sideOffset = (originIdx: 0 | 1 | 2 | 3 | 4 | 5, matIdx: 0 | 1 | 2 | 3 | 4 | 5, distanceMm: number) => {
       const origin = fk.origins[originIdx];
@@ -77,10 +77,16 @@ function CableBundle({ fk }: { fk: ReturnType<typeof forwardKinematics> }) {
       return p;
     };
 
-    const base = sideOffset(0, 0, 92).setZ(0.9);
+    // The base point has to spin with J1 too (1brat's own frame, not the
+    // static world frame) — otherwise it stays put in world space while the
+    // rest of the cable swings around it, cutting straight through the base.
+    const baseSpin = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), j1Rad);
+    const baseSide = new THREE.Vector3(0, 1, 0).applyQuaternion(baseSpin);
+    const base = new THREE.Vector3(0, 0, 0.9).addScaledVector(baseSide, 92 * MM_TO_UNIT);
+
     const points = [base, sideOffset(1, 1, 80), sideOffset(2, 2, 62), sideOffset(3, 3, 44)];
     return new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.3);
-  }, [fk]);
+  }, [fk, j1Rad]);
 
   return (
     <mesh>
@@ -226,7 +232,7 @@ export function RobotArm({ joints, showToolAxes = true }: RobotArmProps) {
       <JointCollar at={O2} radius={0.095} color="#3a3f4b" />
       <JointCollar at={O3} radius={0.075} color="#3a3f4b" />
 
-      <CableBundle fk={fk} />
+      <CableBundle fk={fk} j1Rad={j1Rad} />
 
       {showToolAxes && <ToolGizmo matrix={fk.matrix} />}
     </group>
