@@ -809,3 +809,41 @@ table.matrix td {
   letter-spacing: 0.08em;
   color: var(--text-muted);
 }
+
+/* --- Credit --- */
+.sidebar-credit {
+  display: block;
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-decoration: none;
+  text-align: center;
+  transition: color 0.15s;
+}
+
+.sidebar-credit:hover {
+  color: var(--accent);
+}
+
+.viewer-credit {
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
+  z-index: 3;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--bg-page) 55%, transparent);
+  padding: 4px 8px;
+  text-decoration: none;
+  opacity: 0.75;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.viewer-credit:hover {
+  opacity: 1;
+  color: var(--accent);
+}

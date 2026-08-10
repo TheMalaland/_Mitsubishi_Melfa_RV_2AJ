@@ -156,6 +156,10 @@ export function Scene3D({ joints, pathPoints, targetPoint, theme, demo, onToggle
         />
       </Canvas>
 
+      <a className="viewer-credit" href="https://themalaland.github.io/dev" target="_blank" rel="noopener noreferrer">
+        {t('creditText')}
+      </a>
+
       {!modelReady && (
         <div className="viewer-loading">
           <div className="viewer-loading-bar">

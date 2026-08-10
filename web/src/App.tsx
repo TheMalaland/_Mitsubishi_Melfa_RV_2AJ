@@ -141,6 +141,10 @@ function App() {
               {tab === 'trajectory' && (
                 <TrajectoryPanel onJointsChange={handleJointsChange} onPathChange={setPathPoints} onTargetChange={setTargetPoint} />
               )}
+
+              <a className="sidebar-credit" href="https://themalaland.github.io/dev" target="_blank" rel="noopener noreferrer">
+                {t('creditText')}
+              </a>
             </>
           )}
         </aside>
