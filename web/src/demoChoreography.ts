@@ -11,11 +11,15 @@ interface Keyframe {
 // pose, flourish the wrist — instead of independent per-joint sine waves,
 // which read as aimless wobbling rather than something a robot would
 // actually be shown doing.
+// J2/J3 pairs here stay within the same self-collision limits enforced on
+// the manual FK sliders (see ForwardKinematicsPanel's J2_J3_SUM_LIMIT and
+// J2_J3_DIFF_LIMIT) — otherwise the demo would swing straight through the
+// same self-intersecting corners the sliders are clamped away from.
 const KEYFRAMES: Keyframe[] = [
   { pose: HOME_JOINTS, holdMs: 700 },
   { pose: { j1: 55, j2: 35, j3: -25, j4: 15, j5: 0 }, holdMs: 500 },
-  { pose: { j1: 55, j2: 95, j3: -95, j4: 5, j5: 130 }, holdMs: 750 },
-  { pose: { j1: -65, j2: 75, j3: -75, j4: -25, j5: -160 }, holdMs: 650 },
+  { pose: { j1: 55, j2: 60, j3: -25, j4: 5, j5: 130 }, holdMs: 750 },
+  { pose: { j1: -65, j2: 42, j3: -45, j4: -25, j5: -160 }, holdMs: 650 },
   { pose: { j1: -65, j2: -35, j3: 65, j4: 45, j5: 0 }, holdMs: 550 },
   { pose: { j1: 0, j2: -45, j3: 75, j4: -10, j5: 0 }, holdMs: 700 },
   { pose: HOME_JOINTS, holdMs: 900 },

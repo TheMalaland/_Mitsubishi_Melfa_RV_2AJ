@@ -50,12 +50,38 @@ function Segment({ from, to, radius, color }: { from: Vec3; to: Vec3; radius: nu
 
 // The CAD parts don't quite meet edge-to-edge at every axis (their true
 // mating surface is slightly inset from the bounding box this rig scales
-// against), which leaves a hairline gap at a couple of joints. A small
-// collar hides that seam and doubles as a plausible bearing housing.
-function JointCollar({ at, radius, color, glossy = false }: { at: Vec3; radius: number; color: string; glossy?: boolean }) {
+// against), and at larger bend angles the two independently-rigid link
+// meshes visibly cut into each other near the pivot (there's no shared
+// mating surface keeping them clear of one another the way the real
+// machined joint does). A puck-shaped housing — a short, wide cylinder
+// aligned with the joint's own hinge axis, like the real robot's visible
+// motor housings — covers both problems at once. A sphere was tried first
+// but had to grow implausibly large before it fully hid the overlap; a
+// disc only needs to be wide in the bend plane, not in every direction.
+function JointCollar({
+  at,
+  radius,
+  thickness,
+  hingeMatrix,
+  color,
+  glossy = false,
+}: {
+  at: Vec3;
+  radius: number;
+  thickness: number;
+  hingeMatrix: Mat4;
+  color: string;
+  glossy?: boolean;
+}) {
+  const quaternion = useMemo(() => {
+    const m = new THREE.Matrix4().set(...(hingeMatrix as unknown as Parameters<THREE.Matrix4['set']>));
+    const axis = new THREE.Vector3(0, 0, 1).transformDirection(m);
+    return new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
+  }, [hingeMatrix]);
+
   return (
-    <mesh position={toScene(at)}>
-      <sphereGeometry args={[radius, 20, 20]} />
+    <mesh position={toScene(at)} quaternion={quaternion}>
+      <cylinderGeometry args={[radius, radius, thickness, 28]} />
       {glossy ? (
         <meshPhysicalMaterial color={color} metalness={0.15} roughness={0.3} clearcoat={1} clearcoatRoughness={0.15} />
       ) : (
@@ -216,9 +242,9 @@ export function RobotArm({ joints, showToolAxes = true, onReady }: RobotArmProps
         <RigPart key={entry.file} index={i} geometry={geometries[i]} fk={fk} j1Rad={j1Rad} />
       ))}
 
-      <JointCollar at={O1} radius={0.13} color="#e8790f" glossy />
-      <JointCollar at={O2} radius={0.13} color="#2c2f38" />
-      <JointCollar at={O3} radius={0.1} color="#2c2f38" />
+      <JointCollar at={O1} radius={0.14} thickness={0.12} hingeMatrix={fk.matrices[1]} color="#e8790f" glossy />
+      <JointCollar at={O2} radius={0.2} thickness={0.16} hingeMatrix={fk.matrices[2]} color="#2c2f38" />
+      <JointCollar at={O3} radius={0.12} thickness={0.11} hingeMatrix={fk.matrices[3]} color="#2c2f38" />
 
       {showToolAxes && <ToolGizmo matrix={fk.matrix} />}
     </group>

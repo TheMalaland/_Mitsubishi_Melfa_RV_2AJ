@@ -21,6 +21,14 @@ const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(mi
 // driving the mesh into that self-intersecting corner.
 const J2_J3_SUM_LIMIT = 210;
 
+// Separately, a large positive J2 together with a sufficiently negative J3
+// swings the forearm link's own mounting boss into the upper-arm link's
+// body at the elbow — a different self-intersecting corner than the one
+// above (that one is both joints large and *positive*; this one is J2
+// positive and J3 negative). Capping how far apart they can drift keeps the
+// slider out of that corner too.
+const J2_J3_DIFF_LIMIT = 90;
+
 export function ForwardKinematicsPanel({ onJointsChange }: { onJointsChange: (j: JointAngles) => void }) {
   const { t } = useLanguage();
   const [joints, setJoints] = useState<JointAngles>(HOME_JOINTS);
@@ -36,9 +44,14 @@ export function ForwardKinematicsPanel({ onJointsChange }: { onJointsChange: (j:
       const next = { ...j, [key]: value };
       if (key === 'j2') {
         const j3Max = clamp(J2_J3_SUM_LIMIT - next.j2, JOINT_LIMITS.j3[0], JOINT_LIMITS.j3[1]);
+        const j3Min = clamp(next.j2 - J2_J3_DIFF_LIMIT, JOINT_LIMITS.j3[0], JOINT_LIMITS.j3[1]);
         if (next.j3 > j3Max) next.j3 = j3Max;
+        if (next.j3 < j3Min) next.j3 = j3Min;
       } else if (key === 'j3') {
-        const j2Max = clamp(J2_J3_SUM_LIMIT - next.j3, JOINT_LIMITS.j2[0], JOINT_LIMITS.j2[1]);
+        const j2Max = Math.min(
+          clamp(J2_J3_SUM_LIMIT - next.j3, JOINT_LIMITS.j2[0], JOINT_LIMITS.j2[1]),
+          clamp(next.j3 + J2_J3_DIFF_LIMIT, JOINT_LIMITS.j2[0], JOINT_LIMITS.j2[1])
+        );
         if (next.j2 > j2Max) next.j2 = j2Max;
       }
       return next;
@@ -50,12 +63,14 @@ export function ForwardKinematicsPanel({ onJointsChange }: { onJointsChange: (j:
       <p className="panel-hint">{t('fkHint')}</p>
 
       {(Object.keys(JOINT_KEYS) as (keyof JointAngles)[]).map((key) => {
-        const [min, naturalMax] = JOINT_LIMITS[key];
+        const [naturalMin, naturalMax] = JOINT_LIMITS[key];
+        const min =
+          key === 'j3' ? clamp(joints.j2 - J2_J3_DIFF_LIMIT, naturalMin, naturalMax) : naturalMin;
         const max =
           key === 'j2'
-            ? clamp(J2_J3_SUM_LIMIT - joints.j3, min, naturalMax)
+            ? clamp(Math.min(J2_J3_SUM_LIMIT - joints.j3, joints.j3 + J2_J3_DIFF_LIMIT), naturalMin, naturalMax)
             : key === 'j3'
-              ? clamp(J2_J3_SUM_LIMIT - joints.j2, min, naturalMax)
+              ? clamp(J2_J3_SUM_LIMIT - joints.j2, naturalMin, naturalMax)
               : naturalMax;
         return (
           <div className="field" key={key}>
