@@ -165,13 +165,16 @@ function RigPart({
   geometry,
   fk,
   j1Rad,
+  bodyColor,
 }: {
   index: number;
   geometry: THREE.BufferGeometry;
   fk: ReturnType<typeof forwardKinematics>;
   j1Rad: number;
+  bodyColor?: string;
 }) {
   const entry = MESH_RIG[index];
+  const color = entry.customizable && bodyColor ? bodyColor : entry.color;
 
   const { position, quaternion, scale } = useMemo(() => {
     let pos: Vec3;
@@ -204,7 +207,7 @@ function RigPart({
             darker corners mirror sharply in the concave creases between
             links and read as a black gap/crack, which isn't there. */}
         <meshPhysicalMaterial
-          color={entry.color}
+          color={color}
           metalness={0.08}
           roughness={0.4}
           clearcoat={0.8}
@@ -220,9 +223,10 @@ export interface RobotArmProps {
   joints: JointAngles;
   showToolAxes?: boolean;
   onReady?: () => void;
+  bodyColor?: string;
 }
 
-export function RobotArm({ joints, showToolAxes = true, onReady }: RobotArmProps) {
+export function RobotArm({ joints, showToolAxes = true, onReady, bodyColor }: RobotArmProps) {
   const fk = useMemo(() => forwardKinematics(joints), [joints]);
   const geometries = useRigGeometries();
   const j1Rad = (joints.j1 * Math.PI) / 180;
@@ -239,7 +243,7 @@ export function RobotArm({ joints, showToolAxes = true, onReady }: RobotArmProps
   return (
     <group>
       {MESH_RIG.map((entry, i) => (
-        <RigPart key={entry.file} index={i} geometry={geometries[i]} fk={fk} j1Rad={j1Rad} />
+        <RigPart key={entry.file} index={i} geometry={geometries[i]} fk={fk} j1Rad={j1Rad} bodyColor={bodyColor} />
       ))}
 
       <JointCollar at={O1} radius={0.14} thickness={0.12} hingeMatrix={fk.matrices[1]} color="#e8790f" glossy />

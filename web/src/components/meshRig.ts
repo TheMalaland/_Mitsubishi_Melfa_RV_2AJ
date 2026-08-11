@@ -22,6 +22,8 @@ export type FrameIndex = 0 | 1 | 2 | 3 | 4 | 5;
 export interface MeshRigEntry {
   file: string;
   color: string;
+  /** If true, this part follows the user-selected body color instead of its fixed `color`. */
+  customizable?: boolean;
   /** Frame supplying world position. */
   positionFrame: FrameIndex;
   /** Frame supplying world rotation (usually one ahead of positionFrame — the link has already rotated by its own joint angle). */
@@ -56,11 +58,49 @@ const BODY = '#eeece4';
 const JOINT = '#2c2f38';
 
 export const MESH_RIG: MeshRigEntry[] = [
-  { file: 'baza.stl', color: BODY, positionFrame: 0, rotationFrame: 0 },
-  { file: '1brat.stl', color: BODY, positionFrame: 0, rotationFrame: 0, baseSpinOnly: true, scaleZ: LINK.L1 / REACH_1BRAT },
-  { file: '2brat.stl', color: BODY, positionFrame: 1, rotationFrame: 2, scaleZ: LINK.L2 / REACH_2BRAT, mountEuler: MOUNT_Y90 },
-  { file: '3brat.stl', color: BODY, positionFrame: 2, rotationFrame: 3, scaleZ: LINK.L3 / REACH_3BRAT, mountEuler: MOUNT_Y90 },
+  { file: 'baza.stl', color: BODY, customizable: true, positionFrame: 0, rotationFrame: 0 },
+  {
+    file: '1brat.stl',
+    color: BODY,
+    customizable: true,
+    positionFrame: 0,
+    rotationFrame: 0,
+    baseSpinOnly: true,
+    scaleZ: LINK.L1 / REACH_1BRAT,
+  },
+  {
+    file: '2brat.stl',
+    color: BODY,
+    customizable: true,
+    positionFrame: 1,
+    rotationFrame: 2,
+    scaleZ: LINK.L2 / REACH_2BRAT,
+    mountEuler: MOUNT_Y90,
+  },
+  {
+    file: '3brat.stl',
+    color: BODY,
+    customizable: true,
+    positionFrame: 2,
+    rotationFrame: 3,
+    scaleZ: LINK.L3 / REACH_3BRAT,
+    mountEuler: MOUNT_Y90,
+  },
   { file: '4brat.stl', color: JOINT, positionFrame: 3, rotationFrame: 4, scaleZ: LINK.L4 / REACH_4BRAT },
   { file: 'flansa.stl', color: JOINT, positionFrame: 5, rotationFrame: 5 },
   { file: 'efector.stl', color: '#8f95a3', positionFrame: 5, rotationFrame: 5 },
 ];
+
+// Preset body-color options offered in the viewer controls — the wrist
+// (4brat/flansa) and tool (efector) stay fixed dark/metal regardless, same
+// as how a real robot's paint job doesn't extend to its motor housings.
+export const BODY_COLOR_PRESETS = [
+  { id: 'pearl', color: BODY },
+  { id: 'graphite', color: '#3a3d44' },
+  { id: 'safety-orange', color: '#e8590f' },
+  { id: 'industrial-blue', color: '#2f5fa8' },
+  { id: 'racing-red', color: '#b3221c' },
+  { id: 'safety-yellow', color: '#d9a815' },
+] as const;
+
+export type BodyColorId = (typeof BODY_COLOR_PRESETS)[number]['id'];

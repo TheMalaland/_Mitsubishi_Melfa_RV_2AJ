@@ -11,6 +11,7 @@ const SHAPE_KEYS: Record<TrajectoryShape, TranslationKey> = {
   circle: 'shapeCircle',
   rectangle: 'shapeRectangle',
   triangle: 'shapeTriangle',
+  star: 'shapeStar',
 };
 
 export function TrajectoryPanel({
@@ -105,7 +106,7 @@ export function TrajectoryPanel({
 
       <div className="field">
         <label>
-          {shape === 'circle' ? t('trajRadius') : shape === 'triangle' ? t('trajSide') : t('trajWidth')}{' '}
+          {shape === 'circle' || shape === 'star' ? t('trajRadius') : shape === 'triangle' ? t('trajSide') : t('trajWidth')}{' '}
           <span className="value">{size} mm</span>
         </label>
         <input type="range" min={20} max={180} step={5} value={size} onChange={(e) => setSize(Number(e.target.value))} />

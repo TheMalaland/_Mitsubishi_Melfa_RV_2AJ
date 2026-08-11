@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RobotArm } from './RobotArm';
 import { toScene } from './RobotArm';
+import { BODY_COLOR_PRESETS, type BodyColorId } from './meshRig';
 import type { JointAngles } from '../kinematics/constants';
 import type { Vec3 } from '../kinematics/forwardKinematics';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -50,6 +51,15 @@ const SWATCH_LABEL_KEY: Record<BgPreset, TranslationKey> = {
   blueprint: 'viewerBgBlueprint',
 };
 
+const COLOR_LABEL_KEY: Record<BodyColorId, TranslationKey> = {
+  pearl: 'viewerColorPearl',
+  graphite: 'viewerColorGraphite',
+  'safety-orange': 'viewerColorOrange',
+  'industrial-blue': 'viewerColorBlue',
+  'racing-red': 'viewerColorRed',
+  'safety-yellow': 'viewerColorYellow',
+};
+
 // Soft studio-style reflections on the robot's glossy clearcoat material,
 // generated from a procedural room (three's bundled RoomEnvironment) instead
 // of a fetched HDRI — keeps this working with no network access, which
@@ -82,6 +92,8 @@ export function Scene3D({ joints, pathPoints, targetPoint, theme, demo, onToggle
   const [bg, setBg] = useState<BgPreset>(theme === 'dark' ? 'dark' : 'light');
   const [controlsCollapsed, setControlsCollapsed] = useState(false);
   const [modelReady, setModelReady] = useState(false);
+  const [bodyColorId, setBodyColorId] = useState<BodyColorId>('pearl');
+  const bodyColor = BODY_COLOR_PRESETS.find((p) => p.id === bodyColorId)!.color;
 
   // Studio/blueprint are explicit choices that persist across the theme
   // toggle; the plain dark/light backdrop follows the header theme.
@@ -131,7 +143,7 @@ export function Scene3D({ joints, pathPoints, targetPoint, theme, demo, onToggle
         />
 
         <Suspense fallback={null}>
-          <RobotArm joints={joints} onReady={() => setModelReady(true)} />
+          <RobotArm joints={joints} onReady={() => setModelReady(true)} bodyColor={bodyColor} />
         </Suspense>
 
         {pathPoints && pathPoints.length > 1 && (
@@ -190,6 +202,19 @@ export function Scene3D({ joints, pathPoints, targetPoint, theme, demo, onToggle
                 className={p === bg ? 'viewer-swatch active' : 'viewer-swatch'}
                 style={{ background: SWATCH_PREVIEW[p] }}
                 onClick={() => setBg(p)}
+              />
+            ))}
+          </div>
+          <div className="viewer-controls-group">
+            {BODY_COLOR_PRESETS.map(({ id, color }) => (
+              <button
+                key={id}
+                type="button"
+                title={t(COLOR_LABEL_KEY[id])}
+                aria-label={t(COLOR_LABEL_KEY[id])}
+                className={id === bodyColorId ? 'viewer-swatch active' : 'viewer-swatch'}
+                style={{ background: color }}
+                onClick={() => setBodyColorId(id)}
               />
             ))}
           </div>

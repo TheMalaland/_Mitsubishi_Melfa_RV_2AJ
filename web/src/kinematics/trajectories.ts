@@ -10,7 +10,7 @@ export const TRAJECTORY_HOME = {
   beta: 176.48,
 };
 
-export type TrajectoryShape = 'circle' | 'rectangle' | 'triangle';
+export type TrajectoryShape = 'circle' | 'rectangle' | 'triangle' | 'star';
 
 const deg2rad = (d: number) => (d * Math.PI) / 180;
 
@@ -59,6 +59,19 @@ function triangleWaypoints(side: number): InverseKinematicsInput[] {
   return corners;
 }
 
+/** Five-pointed star, alternating outer and inner radius points, closed into a loop. */
+function starWaypoints(outerRadius: number): InverseKinematicsInput[] {
+  const { x: Pox, y: Poy } = TRAJECTORY_HOME;
+  const innerRadius = outerRadius * 0.382; // classic 5-point star ratio
+  const points: InverseKinematicsInput[] = [];
+  for (let i = 0; i <= 10; i++) {
+    const r = i % 2 === 0 ? outerRadius : innerRadius;
+    const angle = deg2rad(-90 + (i * 360) / 10);
+    points.push(withHomePose(Pox + r * Math.cos(angle), Poy + r * Math.sin(angle)));
+  }
+  return points;
+}
+
 /** Linearly interpolate between polygon corners so playback speed is uniform. */
 function densify(corners: InverseKinematicsInput[], segmentsPerEdge: number): InverseKinematicsInput[] {
   const out: InverseKinematicsInput[] = [];
@@ -96,5 +109,7 @@ export function generateTrajectory({ shape, size, height }: TrajectoryParams): I
       return densify(rectangleWaypoints(height ?? size, size), 24);
     case 'triangle':
       return densify(triangleWaypoints(size), 24);
+    case 'star':
+      return densify(starWaypoints(size), 12);
   }
 }
